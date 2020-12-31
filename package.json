@@ -1,0 +1,18 @@
+{
+  "name": "bruh",
+  "version": "1.0.0",
+  "description": "",
+  "main": "back.js",
+  "dependencies": {
+    "@slippi/slippi-js": "^5.1.1",
+    "express-server": "^0.7.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.6"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
