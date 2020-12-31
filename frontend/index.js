@@ -415,7 +415,6 @@ function mainLoop(){
     if (!isPaused){
         updatePlayerPosition(port);
         updatePlayerPosition(port+1);
-        console.log(`${isPaused}, ${stopNextFrame}`);
 
         
         zonesOccupied();
@@ -423,13 +422,11 @@ function mainLoop(){
         frameCount++;
         
         if(!stopNextFrame){
-            // stopNextFrame = false;
             setTimeout(_=> {
                 requestAnimationFrame(mainLoop);
             }, frameRate);
         }
     }
-    // isPaused = false;
 
 }
 
@@ -500,7 +497,7 @@ function playButtonControls(){
         stopNextFrame = false;
         requestAnimationFrame(mainLoop);
         btn.innerHTML = '❚❚';
-        console.log(`Game continuing from frame advance.`);
+        console.log(`Game resuming on frame ${frameCount}.`);
     }
     // play
     else if(isPaused){
@@ -515,8 +512,6 @@ function playButtonControls(){
         isPaused = true;
         stopNextFrame = false;
         btn.innerHTML = '▶️';
-        console.log(`${isPaused}, ${stopNextFrame}`);
-        
         console.log(`Game is paused on frame ${frameCount}.`);
     }
     // else if(isPaused && stopNextFrame){
