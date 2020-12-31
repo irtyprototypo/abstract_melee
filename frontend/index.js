@@ -7,8 +7,8 @@ let stageID = 31;
 let frameCount = 0;
 let players = [];
 let port = 0;
-let isPlaying = false;
 let isPaused = false;
+let stopNextFrame = false;
 let trails = false;
 let stageFrameVisible = false;
 let zonesVisible = 1;
@@ -412,22 +412,25 @@ function drawCircle(x, y, r, color){
 
 function mainLoop(){
     let frameRate = 16.67;
-    // let frameRate = 0;
-    if (!isPlaying && !isPaused){
-        isPlaying = true;
+    if (!isPaused){
         updatePlayerPosition(port);
         updatePlayerPosition(port+1);
+        console.log(`${isPaused}, ${stopNextFrame}`);
 
         
         zonesOccupied();
         draw();
         frameCount++;
-    
-        setTimeout(_=> {
-            requestAnimationFrame(mainLoop);
-            isPlaying = false;
-        }, frameRate);
+        
+        if(!stopNextFrame){
+            // stopNextFrame = false;
+            setTimeout(_=> {
+                requestAnimationFrame(mainLoop);
+            }, frameRate);
+        }
     }
+    // isPaused = false;
+
 }
 
 function zonesOccupied(){
@@ -477,43 +480,68 @@ function createCanvas(){
     canvas.width = CANVAS_WIDTH;
     canvas.height = CANVAS_HEIGHT;
     // canvas.addEventListener('click', event =>{
-    //     // mediaControls();
+    //     // playButtonControls();
     //     drawDot(event, canvas);
     // }, true);
     
     return canvas.getContext('2d');
 }
 
-function mediaControls(){
+function playButtonControls(){
+    
     let btn = document.getElementById('play-toggle-btn');
     // restart
-    if(frameCount >= lastFrame)
+    if(frameCount >= lastFrame){
         frameCount = 0;
-    // play
-    if(isPaused){
+    }
+    // starting from fram advance
+    else if(!isPaused && stopNextFrame){
         isPaused = false;
+        stopNextFrame = false;
+        requestAnimationFrame(mainLoop);
+        btn.innerHTML = '❚❚';
+        console.log(`Game continuing from frame advance.`);
+    }
+    // play
+    else if(isPaused){
+        isPaused = false;
+        stopNextFrame = false;
         btn.innerHTML = '❚❚';
         requestAnimationFrame(mainLoop);
         console.log('Game is unpaused.');
     }
     // pause
-    else{
+    else if(!isPaused){
         isPaused = true;
+        stopNextFrame = false;
         btn.innerHTML = '▶️';
+        console.log(`${isPaused}, ${stopNextFrame}`);
+        
         console.log(`Game is paused on frame ${frameCount}.`);
     }
+    // else if(isPaused && stopNextFrame){
+    //     isPaused = true;
+    //     stopNextFrame = false;
+    //     btn.innerHTML = '▶️';
+    //     console.log(`dadada ${frameCount}.`);
+    // }
 }
 
 function togglePlay(){
-    mediaControls()
+    playButtonControls()
 }
 
-function frameAdvance(){
-    // mediaControls()
+function nextFrame(){
+        document.getElementById('play-toggle-btn').innerHTML = '▶️';
+        
+        isPaused = false;
+        stopNextFrame = true;
+        requestAnimationFrame(mainLoop);
+
 }
 
 function inflectionAdvance(){
-    // mediaControls()
+    // playButtonControls()
 }
 
 function drawDot(e, canvas) {
@@ -567,8 +595,6 @@ class Player{
         this.charImg = new Image();
         this.charImg.src = `resources/heads_${this.charFacingDirection}/${this.charName}_${this.charColor}.png`;
     }
-
-
 
     colorFromPort(port){
         switch(port){
