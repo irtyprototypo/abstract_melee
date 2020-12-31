@@ -33,7 +33,9 @@ function init(){
 
         /**
          * to do
-         *  - media button
+         *  - upload file button
+         *      - req.body...
+         *  - frame advance
          *  - options engine
          *  - other zones
          *  - draw DI
@@ -117,6 +119,7 @@ function updatePlayerPosition(port){
             isPaused = true;
             console.log(`Frame ${frameCount}/${lastFrame} unavailable.`);
             console.log('Game Over');
+            document.getElementById('play-toggle-btn').innerHTML = '▶️';
         }
     }
 }
@@ -335,6 +338,8 @@ function drawStageGrid(){
     let stageDepth = 5;
     //draw center point
     drawCircle(CANVAS_WIDTH / 2  + stage.x_offset, floor, 5, '#00ff00');
+    drawCircle(CANVAS_WIDTH * frameCount/lastFrame, CANVAS_HEIGHT, 5, '#ff0000');
+
     
     ctx.beginPath();
     
