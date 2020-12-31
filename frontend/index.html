@@ -1,11 +1,37 @@
 <html>
     <head>
+    
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
         <link rel="stylesheet" href="index.css">
+
         <script src="https://code.createjs.com/1.0.0/easeljs.min.js"></script>
         <script defer type="text/javascript" src="index.js"></script>
         <script defer type="text/javascript" src="data.json"></script>
     </head>
     <body onload="init()">
-        <canvas id="game_canvas"></canvas>
+        <div class=" container-fluid max-width">
+            <div class="row">
+                <div id="canvas-container" class="col-sm-12">
+                    <canvas id="game_canvas"></canvas>
+                </div>
+            </div>
+            <div class="row">
+                <div id="spacer" class="container col-sm-4"></div>
+                <div id="media-controls-container" class="container col-sm-4">
+                    <button id="previous-frame-btn" onClick="" class="btn" type="button" disabled>
+                        <div class="arrow-span"><p>⇤</p></div></button>
+                    <button id="play-toggle-btn" onClick="togglePlay();" class="btn" type="button" >
+                        <span class="glyphicon glyphicon-pause"></span></button>
+                    <button id="next-frame-btn" onClick="" class="btn" type="button" disabled>
+                        <div class="arrow-span"><p>⇥</p></div></button>
+                </div>
+                <div id="graphics-controls-container" class="container col-sm-4">
+                    <button id="stage-frame-btn" onClick="toggleStageFrame()" class="btn btn-danger" type="button" > stage frame </button>
+                    <button id="zone-visibility-btn" onClick="toggleZoneVisibility()" class="btn btn-warning" type="button" > zones </button>
+                    <button id="char-bubbles-btn" onClick="toggleCharacterBubbles()" class="btn btn-success" type="button" > char bubbles </button>
+                </div>
+            </div>
+        </div>
     </body>
 </html>

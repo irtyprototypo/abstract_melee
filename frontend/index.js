@@ -10,6 +10,9 @@ let port = 0;
 let isPlaying = false;
 let isPaused = false;
 let trails = false;
+let stageFrameVisible = false;
+let zonesVisible = 1;
+let characterBubbleVisible = true;
 
 function init(){
     async function boot(){
@@ -222,14 +225,18 @@ function draw(){
     }
 
     // draw zones
-    if(center.occupiedBy > -1)
+    if(zonesVisible > 0 && center.occupiedBy > -1)
         if(center.occupiedBy == 2)
             center.draw('#fff');
         else
             center.draw(players[center.occupiedBy].color);
+            
+    if(zonesVisible === 2)
+        center.draw('#fff');
     
     // draw grids
-    drawStageGrid();
+    if(stageFrameVisible)
+        drawStageGrid();
     // drawMeleeGrid();
 
     // draw players
@@ -247,6 +254,64 @@ function cleanSlate(){
     ctx.stroke();
     ctx.closePath();
 }
+
+function toggleCharacterBubbles(){
+    let btn = document.getElementById("char-bubbles-btn");
+    if(characterBubbleVisible == true){
+        console.log('Character bubble disabled.')
+        characterBubbleVisible = false;
+        btn.classList.remove('btn-success');
+        btn.classList.add('btn-danger');
+    }else{
+        console.log('Character bubble enabled.')
+        characterBubbleVisible = true;
+        btn.classList.add('btn-success');
+        btn.classList.remove('btn-danger');
+    }
+}
+
+function toggleZoneVisibility(){
+    zonesVisible = (zonesVisible+1) %3;
+    let btn = document.getElementById("zone-visibility-btn");
+    switch(zonesVisible){
+        case 0:
+            visibility = 'off'
+            btn.classList.remove('btn-success');
+            btn.classList.remove('btn-warning');
+            btn.classList.add('btn-danger');
+            break;
+        case 1:
+            visibility = 'on when inside'
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-warning');
+            btn.classList.remove('btn-danger');
+            break;
+        case 2:
+            visibility = 'always on'
+            btn.classList.add('btn-success');
+            btn.classList.remove('btn-warning');
+            btn.classList.remove('btn-danger');
+            break;
+    }
+    console.log(`Zones ${visibility}.`)
+}
+
+
+function toggleStageFrame(){
+    let btn = document.getElementById("stage-frame-btn");
+    if(stageFrameVisible == true){
+        console.log('Stage frame disabled.');
+        stageFrameVisible = false;
+        btn.classList.remove('btn-success');
+        btn.classList.add('btn-danger');
+    }else{
+        console.log('Stage frame enabled.');
+        stageFrameVisible = true;
+        btn.classList.add('btn-success');
+        btn.classList.remove('btn-danger');
+    }
+}
+
 
 function drawStageGrid(){
     let floor = (CANVAS_HEIGHT * stage.floor_offset) + 5;
@@ -374,20 +439,35 @@ function createCanvas(){
 }
 
 function mediaControls(){
+    let btn = document.getElementById('play-toggle-btn');
     // restart
     if(frameCount >= lastFrame + 20)
-        frameCount = 0;
+    frameCount = 0;
     // play
     if(isPaused){
         isPaused = false;
+        btn.innerHTML = '❚❚';
         requestAnimationFrame(mainLoop);
-        console.log('game is unpaused');
+        console.log('Game is unpaused.');
     }
     // pause
     else{
         isPaused = true;
-        console.log(`game is paused on frame ${frameCount}`);
+        btn.innerHTML = '▶️';
+        console.log(`Game is paused on frame ${frameCount}.`);
     }
+}
+
+function togglePlay(){
+    mediaControls()
+}
+
+function frameAdvance(){
+    // mediaControls()
+}
+
+function inflectionAdvance(){
+    // mediaControls()
 }
 
 function drawDot(e, canvas) {
@@ -429,7 +509,8 @@ class Player{
 
     draw(){
         let radius = 30;
-        drawCircle(this.positionX, this.positionY, radius, this.color);
+        if(characterBubbleVisible)
+            drawCircle(this.positionX, this.positionY, radius, this.color);
         ctx.drawImage(this.charImg, this.positionX - 12, this.positionY - 43);
     }
 

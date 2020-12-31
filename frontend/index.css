@@ -1,23 +1,53 @@
 
 body{
+    position: absolute;
+    top: 0px;
+    left: 0px;
     background-color: grey;
+    max-width: 100%;
+}
+
+#canvas-container{
 }
 
 #game_canvas{
-    border: 1px solid black;
-    /* background-color: blue; */
-
-}
-/* 
-#background_image{
-    max-width: 20px !important;
-    border: 3px solid red;
-} */
-
-#center_zone{
-    font: white;
+    /* width: 100%; */
 }
 
-#p1_img{
-    transform: scaleX(-1);
+#media-controls-container{
+    padding-top: 4px;
+    height: 50px;
+    display: inline-flex;
+    justify-content: space-between;
+}
+
+#media-controls-container > .btn{
+    height: 40px;
+    width: 75px;
+    
+}
+
+#graphics-controls-container{
+    padding-top: 4px;
+    height: 50px;
+    display: inline-flex;
+    justify-content: space-between;
+    
+}
+#graphics-controls-container > .btn{
+    height: 40px;
+    
+}
+
+.container{
+    border: 1px solid red;
+}
+
+.arrow-span{
+    height: 100%;
+    font-size: 30px;
+}
+.arrow-span > p{
+    position: relative;
+    top: -9px;
 }
