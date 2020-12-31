@@ -1,11 +1,14 @@
 {
-  "name": "bruh",
+  "name": "abstract_melee",
   "version": "1.0.0",
   "description": "",
-  "main": "back.js",
+  "main": "serv.js",
   "dependencies": {
     "@slippi/slippi-js": "^5.1.1",
-    "express-server": "^0.7.0"
+    "body-parser": "^1.19.0",
+    "express-fileupload": "^1.2.0",
+    "express-server": "^0.7.0",
+    "formidable": "^1.2.2"
   },
   "devDependencies": {
     "nodemon": "^2.0.6"

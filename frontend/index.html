@@ -6,6 +6,7 @@
         <link rel="stylesheet" href="index.css">
 
         <script src="https://code.createjs.com/1.0.0/easeljs.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
         <script defer type="text/javascript" src="index.js"></script>
         <script defer type="text/javascript" src="data.json"></script>
     </head>
@@ -13,18 +14,43 @@
         <div class=" container-fluid max-width">
             <div class="row">
                 <div id="canvas-container" class="col-sm-12">
-                    <canvas id="game_canvas"></canvas>
+                    <canvas id="game-canvas"></canvas>
                 </div>
             </div>
             <div class="row">
-                <div id="spacer" class="container col-sm-4"></div>
+                <div id="upload-control-container" class="container col-sm-4">
+                    
+                    <div id="upload-btn-container" >
+                        <form id="upload-form" action=""  >
+                            <button id="upload-btn" onClick="upload(this.form); return false;" class="btn" type="submit" >
+                                <div class="icon-div"><p>↻</p></div></button>
+                            <!-- <input type="file" id="slp_upload" name="filename" value="upload" > -->
+                        </form>
+                    </div>
+                    
+                    <div id="upload-text-container" >
+                        <div id="">
+                            <div id="p1-name">p1name </div>
+                            <div id="p1-code">p1code </div>
+                        </div>
+                        <div id="vs-text-container">
+                            <div id="vs-text">vs</div>
+                        </div>
+                        <div id="">
+                            <div id="p2-name">p2name </div>
+                            <div id="p2-code">p2code </div>
+                        </div>
+                    </div>
+                
+                
+                </div>
                 <div id="media-controls-container" class="container col-sm-4">
                     <button id="previous-frame-btn" onClick="" class="btn" type="button" disabled>
-                        <div class="arrow-span"><p>⇤</p></div></button>
+                        <div class="icon-div"><p>⥆</p></div></button>
                     <button id="play-toggle-btn" onClick="togglePlay();" class="btn" type="button" >
                         <span class="glyphicon glyphicon-pause"></span></button>
                     <button id="next-frame-btn" onClick="" class="btn" type="button" disabled>
-                        <div class="arrow-span"><p>⇥</p></div></button>
+                        <div class="icon-div"><p>⥅</p></div></button>
                 </div>
                 <div id="graphics-controls-container" class="container col-sm-4">
                     <button id="stage-frame-btn" onClick="toggleStageFrame()" class="btn btn-danger" type="button" > stage frame </button>

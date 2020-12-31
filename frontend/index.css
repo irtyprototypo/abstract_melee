@@ -8,46 +8,62 @@ body{
 }
 
 #canvas-container{
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
-#game_canvas{
-    /* width: 100%; */
-}
-
-#media-controls-container{
-    padding-top: 4px;
-    height: 50px;
-    display: inline-flex;
-    justify-content: space-between;
-}
-
-#media-controls-container > .btn{
-    height: 40px;
-    width: 75px;
-    
-}
-
+#upload-control-container,
+#media-controls-container,
 #graphics-controls-container{
-    padding-top: 4px;
     height: 50px;
+    padding-top: 4px;
     display: inline-flex;
     justify-content: space-between;
-    
 }
+
+#upload-control-container, #media-controls-container{ border-right: 2px solid black; }
+#media-controls-container, #graphics-controls-container{ border-left: 2px solid black; }
+
+#upload-text-container{
+    display: inline-flex;
+    width: 70%;
+    text-align: center;
+    justify-content: space-evenly;
+}
+
+
+#media-controls-container > .btn{ width: 75px; }
+
+#upload-control-container  .btn,
+#media-controls-container > .btn,
 #graphics-controls-container > .btn{
     height: 40px;
-    
 }
 
-.container{
-    border: 1px solid red;
-}
 
-.arrow-span{
+.icon-div{
     height: 100%;
     font-size: 30px;
 }
-.arrow-span > p{
+.icon-div > p{
     position: relative;
     top: -9px;
+}
+
+#vs-text-container{
+    padding-top: 10px;
+}
+
+#p1-name, #p2-name{
+    font-size: 20px;
+}
+#p1-code, #p2-code{
+    font-size: 12px;
+}
+
+#upload-btn-container{
+    width: 13.5%;
+}
+#upload-btn{
+    margin-bottom: 5px;
 }

@@ -46,12 +46,29 @@ function init(){
     };
 
     boot().then(_=>{
+        
+        // do once
         updateStage(stageID);
         center = new Zone('Center', stage.leftPlatformRight, stage.topPlatformBottom, stage.rightPlatformLeft, stage.y_offset);
         stage.drawStage();
+        
+        guiColorNames();
+
         requestAnimationFrame(mainLoop);
 
     });
+}
+
+function guiColorNames(){
+    document.getElementById('p1-name').innerHTML = players[0].name;
+    document.getElementById('p1-code').innerHTML = players[0].slipCode;
+    document.getElementById('p1-name').style.color = players[0].color;
+    document.getElementById('p1-code').style.color = players[0].color;
+
+    document.getElementById('p2-name').innerHTML = players[1].name;
+    document.getElementById('p2-code').innerHTML = players[1].slipCode;
+    document.getElementById('p2-name').style.color = players[1].color;
+    document.getElementById('p2-code').style.color = players[1].color;
 }
 
 function updateStage(stageID){
@@ -230,8 +247,7 @@ function draw(){
             center.draw('#fff');
         else
             center.draw(players[center.occupiedBy].color);
-            
-    if(zonesVisible === 2)
+    else if(zonesVisible === 2)
         center.draw('#fff');
     
     // draw grids
@@ -281,13 +297,13 @@ function toggleZoneVisibility(){
             btn.classList.add('btn-danger');
             break;
         case 1:
-            visibility = 'on when inside'
+            visibility = 'proximity activated'
             btn.classList.remove('btn-success');
             btn.classList.add('btn-warning');
             btn.classList.remove('btn-danger');
             break;
         case 2:
-            visibility = 'always on'
+            visibility = 'on'
             btn.classList.add('btn-success');
             btn.classList.remove('btn-warning');
             btn.classList.remove('btn-danger');
@@ -423,17 +439,42 @@ function zonesOccupied(){
         center.occupiedBy = port+1;
 }
 
+async function upload(form){
+    // event.preventDefault();
+    
+    // let wat = document.getElementById('upload-form').value;
+    // console.log(wat);
+    // let yo = $(wat.value).serialize();
+    // console.log(yo);
+
+    // let wat = document.getElementById('slp_upload').value;
+    // console.log(form.slp_upload.value);
+    // let wat = form.slp_upload.value;
+    // let ser = $(form.slp_upload.value).serialize();
+    // console.log(ser);
+
+    // let yo = data.value;
+    // yo = $(yo).serialize();
+    // console.log(`v: ${yo}`);
+    
+    // await fetch(`http://localhost:8080/slp_file`, {
+    //     method: 'POST',
+    //     headers: {'Content-Type':'application/x-www-form-urlencoded'},
+    //     body: JSON.stringify({ "user": "wat" })
+    // })
+    // .then(response => { return response; })
+    // .then( data => { return data; });
+}
+
 
 function createCanvas(){
-    let canvas = document.querySelector('#game_canvas');
+    let canvas = document.querySelector('#game-canvas');
     canvas.width = CANVAS_WIDTH;
     canvas.height = CANVAS_HEIGHT;
-    // let s = canvas.addEventListener('click', event =>{drawDot(event, canvas)}, true);
-    canvas.addEventListener('click', event =>{
-        // mediaControls();
-        drawDot(event, canvas);
-
-    }, true);
+    // canvas.addEventListener('click', event =>{
+    //     // mediaControls();
+    //     drawDot(event, canvas);
+    // }, true);
     
     return canvas.getContext('2d');
 }
@@ -441,8 +482,8 @@ function createCanvas(){
 function mediaControls(){
     let btn = document.getElementById('play-toggle-btn');
     // restart
-    if(frameCount >= lastFrame + 20)
-    frameCount = 0;
+    if(frameCount >= lastFrame)
+        frameCount = 0;
     // play
     if(isPaused){
         isPaused = false;
@@ -499,6 +540,8 @@ class Player{
         this.positionX = 0;
         this.positionY = 0;
         this.color = this.colorFromPort(this.port);
+        this.name;
+        this.code;
     }
 
     setPositionX(pos){ this.positionX = pos; }
