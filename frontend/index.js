@@ -1,15 +1,15 @@
 const CANVAS_WIDTH = 1208;
 const CANVAS_HEIGHT = 680;
 
-let ctx, game_frames, lastFrame, jsonData, stage;
+let GAME_STATS, GAME_FRAMES, GAME_METADATA, GAME_SETTINGS;
+let ctx, lastFrame, jsonData, stage, perspective;
 let stageID = 31;
 let currentFrame = 0;
 let playerList = [];
 let zoneList = [];
-let port = 0;
 let isPaused = false;
 let trails = false;
-let stageFrameVisible = false;
+let debugView = false;
 let zonesVisible = 1;
 let characterBubbleVisible = true;
 let printSippiData = true;
@@ -32,10 +32,10 @@ function init(){
          *  - upload file button
          *      - req.body...
          *  - options engine
-         *  - other zones!
-         *  - threat zone
+         *  - more zones!
+         *  - threat zones
          *  - draw DI
-         *  - hud
+         *  - HUD
          *  - items/projectiles
          * 
          */
@@ -51,9 +51,11 @@ function init(){
             stage.drawStage();
             
             createZones(stage.name);
-            
+            perspective = playerList[1];
+            findInflectionPoints();
+
             guiNameColors();
-            
+
             requestAnimationFrame(mainLoop);
         });
     }, 500);
@@ -86,6 +88,17 @@ function createZones(name){
     
 }
 
+// just using "slippi conversions" for lack of a better deliminator
+function findInflectionPoints(){
+    GAME_STATS.conversions.forEach((conv, i) =>{
+        if(conv.playerIndex == perspective.index){
+            perspective.inflectionPoints.push(conv.startFrame); 
+            perspective.ipsReversed.push(conv.startFrame); 
+        }
+    });
+    perspective.ipsReversed.reverse();
+}
+
 function displayMediaButtons(){
     if (currentFrame < lastFrame){
         document.getElementById('previous-inflection-point-btn').disabled = false;
@@ -114,13 +127,12 @@ function drawGameScreen(){
         drawZones();
     
     // draw grids
-    if(stageFrameVisible)
+    if(debugView)
         drawDebugView();
     // drawMeleeGrid();
 
     // draw players
-    playerList[port].draw();
-    playerList[port+1].draw();
+    playerList.forEach( player =>{ player.draw(); });
 }
 
 function drawZones(){
@@ -131,7 +143,7 @@ function drawZones(){
     } else {
         playerList.forEach(player =>{
             player.zones.forEach(zone =>{
-                zone.draw(player.color);
+                zone.draw(player.portColor);
             })
         });
 
@@ -186,10 +198,10 @@ async function loadDataFromJSON(){
 
 function updatePlayerPositions(){
     playerList.forEach((player, i, arr) =>{
-        if((currentFrame >= 0) && (currentFrame < lastFrame) && game_frames[currentFrame]){
-            let posX = meleeToCanvasX(game_frames[currentFrame].players[i].post.positionX);
-            let posY = meleeToCanvasY(game_frames[currentFrame].players[i].post.positionY);
-            let facingDirection = game_frames[currentFrame].players[i].post.facingDirection;
+        if((currentFrame >= 0) && (currentFrame < lastFrame) && GAME_FRAMES[currentFrame]){
+            let posX = meleeToCanvasX(GAME_FRAMES[currentFrame].players[i].post.positionX);
+            let posY = meleeToCanvasY(GAME_FRAMES[currentFrame].players[i].post.positionY);
+            let facingDirection = GAME_FRAMES[currentFrame].players[i].post.facingDirection;
             
             playerList[i].setPositionX(posX);
             playerList[i].setPositionY(posY);
@@ -242,6 +254,7 @@ async function fetchSlippiStats(){
             return response.json();
         })
         .then( data => {
+            GAME_STATS = data;
             if(printSippiData)
                 console.log('stats', data);
             return data;
@@ -284,7 +297,7 @@ async function fetchSlippiFrames(num){
             return response.json();
         })
         .then( data => {
-            game_frames = data;
+            GAME_FRAMES = data;
 
             if(printSippiData)
                 console.log('frame 15:', data[15]);
@@ -366,14 +379,14 @@ function toggleZoneVisibility(){
 
 function toggleStageFrame(){
     let btn = document.getElementById("stage-frame-btn");
-    if(stageFrameVisible == true){
+    if(debugView == true){
         console.log('Stage frame disabled.');
-        stageFrameVisible = false;
+        debugView = false;
         btn.classList.remove('btn-success');
         btn.classList.add('btn-danger');
     }else{
         console.log('Stage frame enabled.');
-        stageFrameVisible = true;
+        debugView = true;
         btn.classList.add('btn-success');
         btn.classList.remove('btn-danger');
     }
@@ -384,6 +397,7 @@ function toggleStageFrame(){
 // media controls
 function mediaButtonPressed(action){
     let playBtn = document.getElementById('play-toggle-btn');
+    let arr;
     switch(action){
         case 'togglePlay':
             if(currentFrame >= lastFrame){
@@ -414,13 +428,15 @@ function mediaButtonPressed(action){
             str = 'going back to';
             break;
         case 'inflectionAdvance':
-            currentFrame += Math.floor(lastFrame/10);
+            targetFrame = perspective.inflectionPoints.find( ip => { return ip > currentFrame; });
+            currentFrame = (targetFrame) ? targetFrame : currentFrame;
             isPaused = true;
             playBtn.innerHTML = '▶️'
             str = 'advancing to';
             break;
         case 'inflectionPrevious':
-            currentFrame -= Math.floor(lastFrame/10);
+            targetFrame = perspective.ipsReversed.find( ip => { return ip < currentFrame; });
+            currentFrame = (targetFrame) ? targetFrame : currentFrame;
             isPaused = true;
             playBtn.innerHTML = '▶️'
             str = 'going back to';
@@ -429,7 +445,6 @@ function mediaButtonPressed(action){
             break;
     }
     console.log(`Game ${str} frame ${currentFrame}.`);
-
 }
 
 
@@ -481,12 +496,13 @@ function drawDebugView(){
     // draw playback percentage
     drawCircle(CANVAS_WIDTH * currentFrame/lastFrame, CANVAS_HEIGHT, 5, '#ff0000');
 
-    ctx.beginPath();
     
     ctx.font = '20px Arial';
     ctx.fillStyle = '#fff';
-    ctx.fillText(`${currentFrame}/${lastFrame}`, 10, 25);
-    
+    let frames = `${currentFrame}/${lastFrame}`;
+    let screen_offset = currentFrame < lastFrame/25 ? 40 : 0;
+    // let screen_offset = currentFrame < 365 ? 40 : 0;
+    ctx.fillText(frames, screen_offset + (CANVAS_WIDTH * currentFrame/lastFrame) - ctx.measureText(frames).width/2, CANVAS_HEIGHT - 20);
 
 
     // draw stage lines
@@ -562,8 +578,8 @@ function guiNameColors(){
     for(let i=0; i < playerList.length; i++){
         document.getElementById(`p${i+1}-name`).innerHTML = playerList[i].name;
         document.getElementById(`p${i+1}-code`).innerHTML = playerList[i].slipCode;
-        document.getElementById(`p${i+1}-name`).style.color = playerList[i].color;
-        document.getElementById(`p${i+1}-code`).style.color = playerList[i].color;
+        document.getElementById(`p${i+1}-name`).style.color = playerList[i].portColor;
+        document.getElementById(`p${i+1}-code`).style.color = playerList[i].portColor;
     }
 }
 
@@ -586,11 +602,13 @@ function gameOverCheck(){
 }
 
 function setPlayers(data){
-    for(i=0; i < data.players.length; i++){
+    data.players.forEach((player, i) =>{
         playerList[i] = new Player(i);
-        playerList[i].charName = jsonData.characters[data.players[i].characterId].shortName;
-        playerList[i].charColor = jsonData.characters[data.players[i].characterId].colors[data.players[i].characterColor];
-    }
+        playerList[i].charName = jsonData.characters[player.characterId].shortName;
+        playerList[i].charColor = jsonData.characters[player.characterId].colors[player.characterColor];
+        playerList[i].port = player.port;
+        playerList[i].setPortColor(player.port);
+    });
 }
 
 function setNetplayNames(data){

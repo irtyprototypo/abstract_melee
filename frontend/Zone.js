@@ -24,7 +24,6 @@ class Zone{
         ctx.strokeStyle = color;
         ctx.fillStyle = 'rgba(0, 255, 0, .25)';
         ctx.fill();
-        ctx.font = "30px Arial";
         ctx.stroke();
         ctx.closePath();
     }
@@ -32,6 +31,7 @@ class Zone{
     drawName(color){
         ctx.beginPath();
         ctx.fillStyle = color;
+        ctx.font = "30px Arial";
         ctx.fill();
         ctx.fillText(this.name, meleeToCanvasX(this.left) + this.width/2 - ctx.measureText(this.name).width/2, meleeToCanvasY(this.top) + 50);
         ctx.stroke();
