@@ -37,7 +37,6 @@ function init(){
          * to do
          *  - upload file button
          *      - req.body...
-         *  - frame previous
          *  - options engine
          *  - other zones
          *  - draw DI
@@ -75,19 +74,28 @@ function mainLoop(){
     zonesOccupied();
     drawGameScreen();
     mediaButtonsDisplay();
+    gameOverCheck();
 
     setTimeout(_=> { requestAnimationFrame(mainLoop); }, frameRate);
 }
 
-function mediaButtonsDisplay(){previousFrame
-    
+function gameOverCheck(){
+    if (currentFrame == lastFrame){
+        isPaused = true;
+        document.getElementById('play-toggle-btn').innerHTML = '▶️';
+        console.log('Game Over');
+    }
+}
+
+function mediaButtonsDisplay(){
     if (currentFrame < lastFrame){
         document.getElementById('previous-inflection-point-btn').disabled = false;
         document.getElementById('previous-frame-btn').disabled = false;
         document.getElementById('next-inflection-point-btn').disabled = false;
         document.getElementById('next-frame-btn').disabled = false;
     }
-    if(currentFrame == lastFrame-1){
+    if(currentFrame >= lastFrame){
+        currentFrame = lastFrame;
         document.getElementById('next-inflection-point-btn').disabled = true;
         document.getElementById('next-frame-btn').disabled = true;
     }
@@ -174,23 +182,15 @@ async function loadDataFromJSON(){
 }
 
 function updatePlayerPosition(port){
-
-        if(currentFrame > 0 && currentFrame < lastFrame){
-            let posX = meleeToCanvasX(game_frames[currentFrame].players[port].post.positionX);
-            let posY = meleeToCanvasY(game_frames[currentFrame].players[port].post.positionY);
-            let facingDirection = game_frames[currentFrame].players[port].post.facingDirection;
-        
-            players[port].setPositionX(posX);
-            players[port].setPositionY(posY);
-            players[port].setCharFacing(facingDirection);
-        }
-        if (currentFrame == lastFrame){
-            currentFrame++;
-            isPaused = true;
-            console.log('Game Over');
-            document.getElementById('play-toggle-btn').innerHTML = '▶️';
-        }
-        
+    if((currentFrame >= 0) && (currentFrame < lastFrame) && game_frames[currentFrame]){
+        let posX = meleeToCanvasX(game_frames[currentFrame].players[port].post.positionX);
+        let posY = meleeToCanvasY(game_frames[currentFrame].players[port].post.positionY);
+        let facingDirection = game_frames[currentFrame].players[port].post.facingDirection;
+    
+        players[port].setPositionX(posX);
+        players[port].setPositionY(posY);
+        players[port].setCharFacing(facingDirection);
+    }
 }
 
 
@@ -394,56 +394,55 @@ function toggleStageFrame(){
 
 
 // media controls
-function togglePlay(){
-    let btn = document.getElementById('play-toggle-btn');
-    // restart: pressed play when game is over
-    if(currentFrame >= lastFrame){
-        currentFrame = 0;
-        isPaused = false;
-        btn.innerHTML = '❚❚';
-        console.log('Game has been restarted.');
+function mediaButtonPressed(action){
+    let playBtn = document.getElementById('play-toggle-btn');
+    switch(action){
+        case 'togglePlay':
+            if(currentFrame >= lastFrame){
+                currentFrame = 0;
+                isPaused = false;
+                playBtn.innerHTML = '❚❚';
+                str = 'has been restarted to';
+            } else if(isPaused){          // play: pressed play while game is paused
+                isPaused = false;
+                playBtn.innerHTML = '❚❚';
+                str = 'is unpaused on';
+            } else if(!isPaused){         // pause: pressed play while game is running
+                isPaused = true;
+                playBtn.innerHTML = '▶️';
+                str = 'is paused on';
+            } 
+            break;
+        case 'nextFrame':
+            currentFrame++;
+            isPaused = true;
+            playBtn.innerHTML = '▶️'
+            str = 'advancing to';
+            break;
+        case 'previousFrame':
+            currentFrame--;
+            isPaused = true;
+            playBtn.innerHTML = '▶️'
+            str = 'going back to';
+            break;
+        case 'inflectionAdvance':
+            currentFrame += Math.floor(lastFrame/10);
+            isPaused = true;
+            playBtn.innerHTML = '▶️'
+            str = 'advancing to';
+            break;
+        case 'inflectionPrevious':
+            currentFrame -= Math.floor(lastFrame/10);
+            isPaused = true;
+            playBtn.innerHTML = '▶️'
+            str = 'going back to';
+            break;
+        default:
+            break;
     }
-    // play: pressed play while game is paused
-    else if(isPaused){
-        isPaused = false;
-        btn.innerHTML = '❚❚';
-        console.log('Game is unpaused.');
-    }
-    // pause: pressed play while game is running
-    else if(!isPaused){
-        isPaused = true;
-        btn.innerHTML = '▶️';
-        console.log(`Game is paused on frame ${currentFrame}.`);
-    }
+    console.log(`Game ${str} frame ${currentFrame}.`);
+
 }
-
-function nextFrame(){
-    currentFrame++;
-    isPaused = true;
-    document.getElementById('play-toggle-btn').innerHTML = '▶️';
-    console.log(`Game advancing to frame ${currentFrame}.`);
-}
-
-function previousFrame(){
-    currentFrame--;
-    isPaused = true;
-    document.getElementById('play-toggle-btn').innerHTML = '▶️';
-    console.log(`Game going back to frame ${currentFrame}.`);
-}
-
-function inflectionAdvance(){
-    currentFrame += Math.floor(lastFrame/10);
-    isPaused = true;
-    console.log(`Game advancing to frame ${currentFrame}.`);
-}
-
-function inflectionPrevious(){
-    currentFrame -= Math.floor(lastFrame/10);
-    isPaused = true;
-    console.log(`Game going back to frame ${currentFrame}.`);
-}
-
-
 
 
 // draw stuff
