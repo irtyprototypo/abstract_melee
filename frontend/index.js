@@ -492,9 +492,15 @@ function drawDebugView(){
 
     // draw center point
     drawCircle(CANVAS_WIDTH / 2  + stage.x_offset, floor, 5, '#00ff00');
+   
+    // draw inflection points
+    perspective.inflectionPoints.forEach(ip =>{
+        drawCircle(CANVAS_WIDTH * ip/lastFrame, CANVAS_HEIGHT, 5, '#00ff00');
+    });
 
     // draw playback percentage
     drawCircle(CANVAS_WIDTH * currentFrame/lastFrame, CANVAS_HEIGHT, 5, '#ff0000');
+    
 
     
     ctx.font = '20px Arial';
