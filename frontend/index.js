@@ -4,7 +4,8 @@ const CANVAS_HEIGHT = 680;
 let ctx, game_frames, lastFrame, jsonData, stage;
 let stageID = 31;
 let currentFrame = 0;
-let players = [];
+let playerList = [];
+let zoneList = [];
 let port = 0;
 let isPaused = false;
 let trails = false;
@@ -31,7 +32,8 @@ function init(){
          *  - upload file button
          *      - req.body...
          *  - options engine
-         *  - other zones
+         *  - other zones!
+         *  - threat zone
          *  - draw DI
          *  - hud
          *  - items/projectiles
@@ -41,16 +43,20 @@ function init(){
 
     };
 
-    boot().then(async _=>{
-        // do once
-        updateStage(stageID);
-        center = new Zone('Center', stage.leftPlatformRight, stage.topPlatformBottom, stage.rightPlatformLeft, stage.y_offset);
-        stage.drawStage();
-        
-        guiNameColors();
+    // do once
+    setTimeout(_=>{
 
-        requestAnimationFrame(mainLoop);
-    });
+        boot().then(async _=>{
+            updateStage(stageID);
+            stage.drawStage();
+            
+            createZones(stage.name);
+            
+            guiNameColors();
+            
+            requestAnimationFrame(mainLoop);
+        });
+    }, 500);
 }
 
 
@@ -60,19 +66,27 @@ function mainLoop(){
     if (!isPaused)
         currentFrame++;
 
-    updatePlayerPosition(port);
-    updatePlayerPosition(port+1);
+    updatePlayerPositions();
 
     zonesOccupied();
     drawGameScreen();
-    mediaButtonsDisplay();
+    displayMediaButtons();
     gameOverCheck();
 
     setTimeout(_=> { requestAnimationFrame(mainLoop); }, frameRate);
 }
 
+function createZones(name){
 
-function mediaButtonsDisplay(){
+    zoneList.push(new Zone('Center', stage.leftPlatformRight, stage.topPlatformBottom, stage.rightPlatformLeft, stage.y_offset));
+    zoneList.push(new Zone('L Corner', stage.leftPlatformLeft - 8, stage.leftPlatformBottom, stage.leftPlatformRight - 15, stage.y_offset - 3.3));
+    zoneList.push(new Zone('R Corner', stage.rightPlatformLeft + 15, stage.rightPlatformBottom, stage.rightPlatformRight + 8 , stage.y_offset - 3.3));
+    zoneList.push(new Zone('L Ledge', stage.left_edge - 15, stage.y_offset, stage.left_edge, stage.y_offset - 30));
+    zoneList.push(new Zone('R Ledge', stage.right_edge, stage.y_offset, stage.right_edge + 15, stage.y_offset - 30));
+    
+}
+
+function displayMediaButtons(){
     if (currentFrame < lastFrame){
         document.getElementById('previous-inflection-point-btn').disabled = false;
         document.getElementById('previous-frame-btn').disabled = false;
@@ -96,41 +110,49 @@ function drawGameScreen(){
         stage.drawStage();
     }
 
-    // draw zones
-    if(zonesVisible > 0 && center.occupiedBy > -1)
-        if(center.occupiedBy == 2)
-            center.draw('#fff');
-        else
-            center.draw(players[center.occupiedBy].color);
-    else if(zonesVisible === 2)
-        center.draw('#fff');
+    if(zonesVisible > 0)
+        drawZones();
     
     // draw grids
     if(stageFrameVisible)
-        drawStageGrid();
+        drawDebugView();
     // drawMeleeGrid();
 
     // draw players
-    players[port].draw();
-    players[port+1].draw();
+    playerList[port].draw();
+    playerList[port+1].draw();
+}
+
+function drawZones(){
+    let intersect = new Set();
+
+    if(zonesVisible == 2){
+        zoneList.forEach(zone =>{ zone.draw('#fff'); })
+    } else {
+        playerList.forEach(player =>{
+            player.zones.forEach(zone =>{
+                zone.draw(player.color);
+            })
+        });
+
+        
+        for(let z of playerList[0].zones)
+            if(playerList[1].zones.has(z))
+                intersect.add(z);
+
+        intersect.forEach(zone => { zone.draw('#fff'); });
+    }
 }
 
 function zonesOccupied(){
-    // center
-    let p1InsideCenter = center.isInside(players[port].positionX, players[port].positionY);
-    let p2InsideCenter = center.isInside(players[port+1].positionX, players[port+1].positionY);
-    if(!p1InsideCenter && !p2InsideCenter)          // empty
-        center.occupiedBy = -1;
-    else if(p1InsideCenter && p2InsideCenter)       // contested
-        center.occupiedBy = port+2;
-    else if(p1InsideCenter)                         // player[0]
-        center.occupiedBy = port;
-    else if(p2InsideCenter)                         // player[1]
-        center.occupiedBy = port+1;
+    playerList.forEach((player, x) =>{
+        player.zones = new Set();
+        zoneList.forEach((zone, y) =>{
+            if(zone.isInside(player.positionX, player.positionY))
+                player.zones.add(zone);
+        });
+    });
 }
-
-
-
 
 function updateStage(stageID){
     let selectedStage;
@@ -162,16 +184,18 @@ async function loadDataFromJSON(){
         });
 }
 
-function updatePlayerPosition(port){
-    if((currentFrame >= 0) && (currentFrame < lastFrame) && game_frames[currentFrame]){
-        let posX = meleeToCanvasX(game_frames[currentFrame].players[port].post.positionX);
-        let posY = meleeToCanvasY(game_frames[currentFrame].players[port].post.positionY);
-        let facingDirection = game_frames[currentFrame].players[port].post.facingDirection;
-    
-        players[port].setPositionX(posX);
-        players[port].setPositionY(posY);
-        players[port].setCharFacing(facingDirection);
-    }
+function updatePlayerPositions(){
+    playerList.forEach((player, i, arr) =>{
+        if((currentFrame >= 0) && (currentFrame < lastFrame) && game_frames[currentFrame]){
+            let posX = meleeToCanvasX(game_frames[currentFrame].players[i].post.positionX);
+            let posY = meleeToCanvasY(game_frames[currentFrame].players[i].post.positionY);
+            let facingDirection = game_frames[currentFrame].players[i].post.facingDirection;
+            
+            playerList[i].setPositionX(posX);
+            playerList[i].setPositionY(posY);
+            playerList[i].setCharFacing(facingDirection);
+        }
+    });
 }
 
 
@@ -446,17 +470,27 @@ function drawCircle(x, y, r, color){
     ctx.closePath();
 }
 
-function drawStageGrid(){
+function drawDebugView(){
     let floor = (CANVAS_HEIGHT * stage.floor_offset) + 5;
     let platformDepth = 3;
     let stageDepth = 5;
-    //draw center point
+
+    // draw center point
     drawCircle(CANVAS_WIDTH / 2  + stage.x_offset, floor, 5, '#00ff00');
+
+    // draw playback percentage
     drawCircle(CANVAS_WIDTH * currentFrame/lastFrame, CANVAS_HEIGHT, 5, '#ff0000');
 
-    
     ctx.beginPath();
     
+    ctx.font = '20px Arial';
+    ctx.fillStyle = '#fff';
+    ctx.fillText(`${currentFrame}/${lastFrame}`, 10, 25);
+    
+
+
+    // draw stage lines
+    ctx.beginPath();
     ctx.strokeStyle = '#00ff00'
     // stage
     ctx.moveTo(meleeToCanvasX(stage.left_edge), meleeToCanvasY(0 - stageDepth));
@@ -525,15 +559,12 @@ function createCanvas(){
 
 // utils
 function guiNameColors(){
-    document.getElementById('p1-name').innerHTML = players[0].name;
-    document.getElementById('p1-code').innerHTML = players[0].slipCode;
-    document.getElementById('p1-name').style.color = players[0].color;
-    document.getElementById('p1-code').style.color = players[0].color;
-
-    document.getElementById('p2-name').innerHTML = players[1].name;
-    document.getElementById('p2-code').innerHTML = players[1].slipCode;
-    document.getElementById('p2-name').style.color = players[1].color;
-    document.getElementById('p2-code').style.color = players[1].color;
+    for(let i=0; i < playerList.length; i++){
+        document.getElementById(`p${i+1}-name`).innerHTML = playerList[i].name;
+        document.getElementById(`p${i+1}-code`).innerHTML = playerList[i].slipCode;
+        document.getElementById(`p${i+1}-name`).style.color = playerList[i].color;
+        document.getElementById(`p${i+1}-code`).style.color = playerList[i].color;
+    }
 }
 
 function gameOverCheck(){
@@ -544,26 +575,27 @@ function gameOverCheck(){
             gameOver = true;
             
             document.getElementById('play-toggle-btn').innerHTML = '▶️';
-            console.log('Game Over');
+            console.log('Game Over.');
         }
     }
     
-    if(currentFrame <= 0)
+    if(currentFrame <= 0){
+        gameOver = false;
         currentFrame = 0;
+    }
 }
 
 function setPlayers(data){
-    console.log(data.players.length);
     for(i=0; i < data.players.length; i++){
-        players[i] = new Player(i);
-        players[i].charName = jsonData.characters[data.players[i].characterId].shortName;
-        players[i].charColor = jsonData.characters[data.players[i].characterId].colors[data.players[i].characterColor];
+        playerList[i] = new Player(i);
+        playerList[i].charName = jsonData.characters[data.players[i].characterId].shortName;
+        playerList[i].charColor = jsonData.characters[data.players[i].characterId].colors[data.players[i].characterColor];
     }
 }
 
 function setNetplayNames(data){
-    for(i=0; i < players.length; i++){
-        players[i].name = data.players[i].names.netplay;
-        players[i].slipCode = data.players[i].names.code;
+    for(i=0; i < playerList.length; i++){
+        playerList[i].name = data.players[i].names.netplay;
+        playerList[i].slipCode = data.players[i].names.code;
     }
 }

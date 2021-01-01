@@ -13,20 +13,27 @@ class Zone{
     }
 
     draw(color){
+        this.drawBox(color);
+        this.drawName(color);
+    }
+
+    drawBox(color){
         ctx.beginPath();
         ctx.rect(meleeToCanvasX(this.left), meleeToCanvasY(this.top - 6), this.width, this.height);
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 2;
         ctx.strokeStyle = color;
         ctx.fillStyle = 'rgba(0, 255, 0, .25)';
         ctx.fill();
         ctx.font = "30px Arial";
         ctx.stroke();
         ctx.closePath();
-        
+    }
+    
+    drawName(color){
         ctx.beginPath();
         ctx.fillStyle = color;
         ctx.fill();
-        ctx.fillText(this.name, meleeToCanvasX(this.left) + this.width/4, meleeToCanvasY(this.top) + 50);
+        ctx.fillText(this.name, meleeToCanvasX(this.left) + this.width/2 - ctx.measureText(this.name).width/2, meleeToCanvasY(this.top) + 50);
         ctx.stroke();
         ctx.closePath();
     }

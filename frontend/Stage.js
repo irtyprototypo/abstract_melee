@@ -11,7 +11,6 @@ class Stage{
         this.x_offset = x_offset;
         this.y_offset = y_offset;
         this.floor_offset = floor_offset;
-
     }
 
 

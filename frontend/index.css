@@ -10,6 +10,7 @@ body{
 #canvas-container{
     margin-top: 10px;
     margin-bottom: 10px;
+    height: 680px;
 }
 
 #upload-control-container,
@@ -38,6 +39,7 @@ body{
 #media-controls-container > .btn,
 #graphics-controls-container > .btn{
     height: 40px;
+    outline: none;
 }
 
 

@@ -10,8 +10,9 @@ class Player{
         this.positionX = 0;
         this.positionY = 0;
         this.color = this.colorFromPort(this.port);
-        this.name;
-        this.code;
+        this.name = '';
+        this.code = '';
+        this.zones = new Set();
     }
 
     setPositionX(pos){ this.positionX = pos; }
