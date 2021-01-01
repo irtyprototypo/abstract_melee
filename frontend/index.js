@@ -12,6 +12,7 @@ let stageFrameVisible = false;
 let zonesVisible = 1;
 let characterBubbleVisible = true;
 let printSippiData = true;
+let gameOver = false;
 
 function init(){
     async function boot(){
@@ -19,19 +20,11 @@ function init(){
         ctx = createCanvas();
         loadDataFromJSON();
 
-        // set players
-        players[0] = new Player(0);
-        players[1] = new Player(1);
-
         // gather slippi data
         await fetchSlippiSettings();
-        await fetchSlippiMetaData();
         await fetchSlippiStats();
         await fetchSlippiFrames();
-
-
-
-
+        await fetchSlippiMetaData();
 
         /**
          * to do
@@ -48,19 +41,18 @@ function init(){
 
     };
 
-    boot().then(_=>{
-        
+    boot().then(async _=>{
         // do once
         updateStage(stageID);
         center = new Zone('Center', stage.leftPlatformRight, stage.topPlatformBottom, stage.rightPlatformLeft, stage.y_offset);
         stage.drawStage();
         
-        guiColorNames();
+        guiNameColors();
 
         requestAnimationFrame(mainLoop);
-
     });
 }
+
 
 function mainLoop(){
     let frameRate = 16.67;
@@ -79,13 +71,6 @@ function mainLoop(){
     setTimeout(_=> { requestAnimationFrame(mainLoop); }, frameRate);
 }
 
-function gameOverCheck(){
-    if (currentFrame == lastFrame){
-        isPaused = true;
-        document.getElementById('play-toggle-btn').innerHTML = '▶️';
-        console.log('Game Over');
-    }
-}
 
 function mediaButtonsDisplay(){
     if (currentFrame < lastFrame){
@@ -95,12 +80,10 @@ function mediaButtonsDisplay(){
         document.getElementById('next-frame-btn').disabled = false;
     }
     if(currentFrame >= lastFrame){
-        currentFrame = lastFrame;
         document.getElementById('next-inflection-point-btn').disabled = true;
         document.getElementById('next-frame-btn').disabled = true;
     }
     if(currentFrame <= 0){
-        currentFrame = 0;
         document.getElementById('previous-inflection-point-btn').disabled = true;
         document.getElementById('previous-frame-btn').disabled = true;
     }
@@ -145,8 +128,6 @@ function zonesOccupied(){
     else if(p2InsideCenter)                         // player[1]
         center.occupiedBy = port+1;
 }
-
-
 
 
 
@@ -249,22 +230,11 @@ async function fetchSlippiMetaData(){
             return response.json();
         })
         .then( data => {
-            lastFrame = data.lastFrame;
-            
-            players[0].name = data.players[0].names.netplay;
-            players[0].slipCode = data.players[0].names.code;
-
-            try{
-                players[1].name = data.players[1].names.netplay;
-                players[1].slipCode = data.players[1].names.code;
-            } catch(e){
-                players[1].name = 'nerd1';
-                players[1].slipCode = '#6969';
-            }
-
             if(printSippiData)
                 console.log('meta', data);
-        
+
+            setNetplayNames(data);
+            lastFrame = data.lastFrame;
             return data;
         });
 }
@@ -275,17 +245,11 @@ async function fetchSlippiSettings(){
             return response.json();
         })
         .then( data => {
-            stageID = data.stageId;
-
-            players[0].charName = jsonData.characters[data.players[0].characterId].shortName;
-            players[0].charColor = jsonData.characters[data.players[0].characterId].colors[data.players[0].characterColor];
-
-            players[1].charName = jsonData.characters[data.players[1].characterId].shortName;
-            players[1].charColor = jsonData.characters[data.players[1].characterId].colors[data.players[1].characterColor];
-
             if(printSippiData)
                 console.log('settings', data);
-
+            
+            setPlayers(data);
+            stageID = data.stageId;
             return data;
         });
 }
@@ -560,7 +524,7 @@ function createCanvas(){
 
 
 // utils
-function guiColorNames(){
+function guiNameColors(){
     document.getElementById('p1-name').innerHTML = players[0].name;
     document.getElementById('p1-code').innerHTML = players[0].slipCode;
     document.getElementById('p1-name').style.color = players[0].color;
@@ -570,4 +534,36 @@ function guiColorNames(){
     document.getElementById('p2-code').innerHTML = players[1].slipCode;
     document.getElementById('p2-name').style.color = players[1].color;
     document.getElementById('p2-code').style.color = players[1].color;
+}
+
+function gameOverCheck(){
+    if(!gameOver){
+        if (currentFrame >= lastFrame){
+            currentFrame = lastFrame;
+            isPaused = true;
+            gameOver = true;
+            
+            document.getElementById('play-toggle-btn').innerHTML = '▶️';
+            console.log('Game Over');
+        }
+    }
+    
+    if(currentFrame <= 0)
+        currentFrame = 0;
+}
+
+function setPlayers(data){
+    console.log(data.players.length);
+    for(i=0; i < data.players.length; i++){
+        players[i] = new Player(i);
+        players[i].charName = jsonData.characters[data.players[i].characterId].shortName;
+        players[i].charColor = jsonData.characters[data.players[i].characterId].colors[data.players[i].characterColor];
+    }
+}
+
+function setNetplayNames(data){
+    for(i=0; i < players.length; i++){
+        players[i].name = data.players[i].names.netplay;
+        players[i].slipCode = data.players[i].names.code;
+    }
 }
