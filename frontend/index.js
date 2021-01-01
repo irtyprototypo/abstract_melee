@@ -237,7 +237,7 @@ async function fetchSlippiFrames(num){
         });
 }
 
-function draw(){
+function drawGame(){
     // draw background
     if(!trails){
         cleanSlate();
@@ -412,22 +412,18 @@ function drawCircle(x, y, r, color){
 
 function mainLoop(){
     let frameRate = 16.67;
-    if (!isPaused){
-        updatePlayerPosition(port);
-        updatePlayerPosition(port+1);
 
-        
-        zonesOccupied();
-        draw();
+    if (!isPaused)
         frameCount++;
-        
-        if(!stopNextFrame){
-            setTimeout(_=> {
-                requestAnimationFrame(mainLoop);
-            }, frameRate);
-        }
-    }
 
+    updatePlayerPosition(port);
+    updatePlayerPosition(port+1);
+
+    zonesOccupied();
+    drawGame();
+    
+    // if(!stopNextFrame)
+        setTimeout(_=> { requestAnimationFrame(mainLoop); }, frameRate);
 }
 
 function zonesOccupied(){
@@ -484,60 +480,34 @@ function createCanvas(){
     return canvas.getContext('2d');
 }
 
-function playButtonControls(){
-    
+function togglePlay(){
     let btn = document.getElementById('play-toggle-btn');
-    // restart
+    // restart: pressed play when game is over
     if(frameCount >= lastFrame){
         frameCount = 0;
     }
-    // starting from fram advance
-    else if(!isPaused && stopNextFrame){
-        isPaused = false;
-        stopNextFrame = false;
-        requestAnimationFrame(mainLoop);
-        btn.innerHTML = '❚❚';
-        console.log(`Game resuming on frame ${frameCount}.`);
-    }
-    // play
+    // play: pressed play while game is paused
     else if(isPaused){
         isPaused = false;
-        stopNextFrame = false;
         btn.innerHTML = '❚❚';
-        requestAnimationFrame(mainLoop);
         console.log('Game is unpaused.');
     }
-    // pause
+    // pause: pressed play while game is running
     else if(!isPaused){
         isPaused = true;
-        stopNextFrame = false;
         btn.innerHTML = '▶️';
         console.log(`Game is paused on frame ${frameCount}.`);
     }
-    // else if(isPaused && stopNextFrame){
-    //     isPaused = true;
-    //     stopNextFrame = false;
-    //     btn.innerHTML = '▶️';
-    //     console.log(`dadada ${frameCount}.`);
-    // }
-}
-
-function togglePlay(){
-    playButtonControls()
 }
 
 function nextFrame(){
-        document.getElementById('play-toggle-btn').innerHTML = '▶️';
-        
-        isPaused = false;
-        stopNextFrame = true;
-        requestAnimationFrame(mainLoop);
-
+    frameCount++;
+    console.log(`Game advancing to frame ${frameCount}.`);
+    document.getElementById('play-toggle-btn').innerHTML = '▶️';
+    isPaused = true;
 }
 
-function inflectionAdvance(){
-    // playButtonControls()
-}
+function inflectionAdvance(){}
 
 function drawDot(e, canvas) {
     let c = canvas.getContext('2d');
@@ -557,134 +527,5 @@ function drawDot(e, canvas) {
 
 
 
-class Player{
-    constructor(port){
-        this.port = port;
-        this.charFacingDirection = 1;
-        this.charName = 'SandBag';
-        this.charColor = 'Default';
-        this.charImg = new Image();
-        this.charImg.src = `resources/heads_${this.charFacingDirection}/${this.charName}_${this.charColor}.png`;
-        this.positionX = 0;
-        this.positionY = 0;
-        this.color = this.colorFromPort(this.port);
-        this.name;
-        this.code;
-    }
-
-    setPositionX(pos){ this.positionX = pos; }
-    setPositionY(pos){ this.positionY = pos; }
-
-    getPositionX(){ return this.positionX; }
-    getPositionY(){ return this.positionY; }
-
-    draw(){
-        let radius = 30;
-        if(characterBubbleVisible)
-            drawCircle(this.positionX, this.positionY, radius, this.color);
-        ctx.drawImage(this.charImg, this.positionX - 12, this.positionY - 43);
-    }
-
-    setCharFacing(dir){
-        this.charFacingDirection = dir;
-        this.charImg = new Image();
-        this.charImg.src = `resources/heads_${this.charFacingDirection}/${this.charName}_${this.charColor}.png`;
-    }
-
-    colorFromPort(port){
-        switch(port){
-            case 0:
-                return '#ff392e';
-            case 1:
-                return '#3370d4';
-            case 2:
-                return '#00ff00';
-            case 3:
-                return '#ffff00';
-            default:
-                return '#ffffff';
-        }
-    }
-}
-
-class Zone{
-    constructor(name, left, top, right, bottom){
-        this.name = name;
-        this.left = left;
-        this.top = top;
-        this.right = right;
-        this.bottom = bottom;
-        this.overLay = this.draw();
-        this.occupiedBy = -1;
-        this.width = -(meleeToCanvasX(this.left) - meleeToCanvasX(this.right));
-        this.height = meleeToCanvasX(this.top - 5) - meleeToCanvasX(this.bottom);
-    }
-
-    draw(color){
-        ctx.beginPath();
-        ctx.rect(meleeToCanvasX(this.left), meleeToCanvasY(this.top - 6), this.width, this.height);
-        ctx.lineWidth = 3;
-        ctx.strokeStyle = color;
-        ctx.fillStyle = 'rgba(0, 255, 0, .25)';
-        ctx.fill();
-        ctx.font = "30px Arial";
-        ctx.stroke();
-        ctx.closePath();
-        
-        ctx.beginPath();
-        ctx.fillStyle = color;
-        ctx.fill();
-        ctx.fillText(this.name, meleeToCanvasX(this.left) + this.width/4, meleeToCanvasY(this.top) + 50);
-        ctx.stroke();
-        ctx.closePath();
-    }
-
-    isInside(x, y){
-        if(canvasToMeleeX(x) <= this.right && canvasToMeleeX(x) >= this.left) 
-            if(canvasToMeleeY(y) <= this.top - stage.y_offset && canvasToMeleeY(y) >= this.bottom - stage.y_offset)
-                return true;
-    }
-
-}
 
 
-
-
-class Stage{
-    constructor(name, left_edge, right_edge, x_scaler, y_scaler, x_offset, y_offset, floor_offset){
-        this.name = name;
-        this.img = new Image();
-        this.img.id = 'background_image';
-        this.img.src = `/resources/screenshots/${name}/stage.png`;
-        this.left_edge = left_edge;
-        this.right_edge = right_edge;
-        this.x_scaler = x_scaler;
-        this.y_scaler = y_scaler;
-        this.x_offset = x_offset;
-        this.y_offset = y_offset;
-        this.floor_offset = floor_offset;
-
-    }
-
-
-    setLeftPlatform(left, right, bottom){
-        this.leftPlatformLeft = left;
-        this.leftPlatformRight = right;
-        this.leftPlatformBottom = bottom;
-    }
-
-    setRightPlatform(left, right, bottom){
-        this.rightPlatformLeft = left;
-        this.rightPlatformRight = right;
-        this.rightPlatformBottom = bottom;
-    }
-    setTopPlatform(left, right, bottom){
-        this.topPlatformLeft = left;
-        this.topPlatformRight = right;
-        this.topPlatformBottom = bottom;
-    }
-
-    drawStage(){
-        ctx.drawImage(this.img, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    }
-}
