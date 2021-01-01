@@ -41,19 +41,19 @@ app.post('/slp_file*', (req, res) =>{
 
 });
 
-app.get('/slippi_settings', (req, res) =>{
+app.get('/slippi_settings*', (req, res) =>{
   res.send(game.getSettings());
 });
 
-app.get('/slippi_metadata', (req, res) =>{
+app.get('/slippi_metadata*', (req, res) =>{
   res.send(game.getMetadata());
 });
 
-app.get('/slippi_stats', (req, res) =>{
+app.get('/slippi_stats*', (req, res) =>{
   res.send(game.getStats());
 });
 
-app.get('/slippi_frames/*', (req, res) =>{
+app.get('/slippi_frames*', (req, res) =>{
   res.send(game.getFrames());
 });
 
