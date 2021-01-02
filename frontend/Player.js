@@ -14,8 +14,9 @@ class Player{
         this.name = '';
         this.code = '';
         this.zones = new Set();
-        this.inflectionPoints = [];
-        this.ipsReversed = [];
+        this.inflectionPointNames = [];
+        this.inflectionPointFrames = [];
+        this.ipFramesReversed = [];
     }
 
     setPositionX(pos){ this.positionX = pos; }

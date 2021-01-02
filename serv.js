@@ -9,7 +9,7 @@ const formidable = require('formidable');
 const { default: SlippiGame } = require('@slippi/slippi-js');
 const { log } = require('console');
 // const { default: SlippiGame, stages: stageUtil, moves: moveUtil, characters: characterUtil } = require('@slippi/slippi-js');
-const game = new SlippiGame("uploads/test3.slp");
+const game = new SlippiGame("uploads/test2.slp");
 
 
 app.use(express.static(path.join(process.cwd(), buildDirectory)));

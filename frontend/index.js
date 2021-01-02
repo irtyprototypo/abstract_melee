@@ -7,7 +7,7 @@ let stageID = 31;
 let currentFrame = 0;
 let playerList = [];
 let zoneList = [];
-let isPaused = false;
+let isPaused = true;
 let trails = false;
 let debugView = false;
 let zonesVisible = 1;
@@ -92,11 +92,12 @@ function createZones(name){
 function findInflectionPoints(){
     GAME_STATS.conversions.forEach((conv, i) =>{
         if(conv.playerIndex == perspective.index){
-            perspective.inflectionPoints.push(conv.startFrame); 
-            perspective.ipsReversed.push(conv.startFrame); 
+            perspective.inflectionPointNames.push( conv.openingType ); 
+            perspective.inflectionPointFrames.push( conv.startFrame ); 
+            perspective.ipFramesReversed.push( conv.startFrame ); 
         }
     });
-    perspective.ipsReversed.reverse();
+    perspective.ipFramesReversed.reverse();
 }
 
 function displayMediaButtons(){
@@ -428,14 +429,14 @@ function mediaButtonPressed(action){
             str = 'going back to';
             break;
         case 'inflectionAdvance':
-            targetFrame = perspective.inflectionPoints.find( ip => { return ip > currentFrame; });
+            targetFrame = perspective.inflectionPointFrames.find( ip => { return ip > currentFrame; });
             currentFrame = (targetFrame) ? targetFrame : currentFrame;
             isPaused = true;
             playBtn.innerHTML = '▶️'
             str = 'advancing to';
             break;
         case 'inflectionPrevious':
-            targetFrame = perspective.ipsReversed.find( ip => { return ip < currentFrame; });
+            targetFrame = perspective.ipFramesReversed.find( ip => { return ip < currentFrame; });
             currentFrame = (targetFrame) ? targetFrame : currentFrame;
             isPaused = true;
             playBtn.innerHTML = '▶️'
@@ -492,10 +493,21 @@ function drawDebugView(){
 
     // draw center point
     drawCircle(CANVAS_WIDTH / 2  + stage.x_offset, floor, 5, '#00ff00');
-   
+    let inflectionColor = '#fff' 
     // draw inflection points
-    perspective.inflectionPoints.forEach(ip =>{
-        drawCircle(CANVAS_WIDTH * ip/lastFrame, CANVAS_HEIGHT, 5, '#00ff00');
+    perspective.inflectionPointFrames.forEach((ip, i) =>{
+        switch(perspective.inflectionPointNames[i]){
+            case 'neutral-win':
+                inflectionColor = '#00ff00';
+                break;
+            case 'counter-attack':
+                inflectionColor = '#0000ff';
+                break;
+            default:
+                inflectionColor = '#fff000';
+                break;
+        }
+        drawCircle(CANVAS_WIDTH * ip/lastFrame, CANVAS_HEIGHT, 5, inflectionColor);
     });
 
     // draw playback percentage
