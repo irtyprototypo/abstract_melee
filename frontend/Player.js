@@ -17,6 +17,7 @@ class Player{
         this.inflectionPointNames = [];
         this.inflectionPointFrames = [];
         this.ipFramesReversed = [];
+        this.activePerspective;
     }
 
     setPositionX(pos){ this.positionX = pos; }
@@ -27,8 +28,15 @@ class Player{
 
     draw(){
         let radius = 30;
+        let stroke = '#000';
+        if(this.activePerspective == true)
+            stroke = '#00ff00';
+        else
+            stroke = '#fff';
+
+        // let stroke = this.activePerspective ? '#00ff00' : '#fff';
         if(characterBubbleVisible)
-            drawCircle(this.positionX, this.positionY, radius, this.portColor);
+            drawCircle(this.positionX, this.positionY, radius, this.portColor, stroke);
         ctx.drawImage(this.charImg, this.positionX - 12, this.positionY - 43);
     }
 

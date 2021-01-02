@@ -51,7 +51,7 @@ function init(){
             stage.drawStage();
             
             createZones(stage.name);
-            perspective = playerList[1];
+            setPerspective(0);
             findInflectionPoints();
 
             guiNameColors();
@@ -68,15 +68,44 @@ function mainLoop(){
     if (!isPaused)
         currentFrame++;
 
+        
     updatePlayerPositions();
-
+    
+    
     zonesOccupied();
     drawGameScreen();
     displayMediaButtons();
     gameOverCheck();
+    generateOptions();
 
     setTimeout(_=> { requestAnimationFrame(mainLoop); }, frameRate);
 }
+
+
+function generateOptions(){
+    if(!isPaused)
+        return;
+
+    // perspective.zones.forEach(zone =>{
+    //     console.log(zone.name);
+    // });
+
+}
+
+function setPerspective(playerIndex){
+    playerList.forEach(p =>{
+        if (p.index === playerIndex){
+            perspective = p;
+            p.activePerspective = true;
+            document.getElementById(`p${p.port}-text-container`).style.border = '2px solid #00ff00';
+        } else{
+            p.activePerspective = false;
+            document.getElementById(`p${p.port}-text-container`).style.border = 'none';
+        }
+
+    });
+}
+
 
 function createZones(name){
 
@@ -90,14 +119,16 @@ function createZones(name){
 
 // just using "slippi conversions" for lack of a better deliminator
 function findInflectionPoints(){
-    GAME_STATS.conversions.forEach((conv, i) =>{
-        if(conv.playerIndex == perspective.index){
-            perspective.inflectionPointNames.push( conv.openingType ); 
-            perspective.inflectionPointFrames.push( conv.startFrame ); 
-            perspective.ipFramesReversed.push( conv.startFrame ); 
-        }
+    playerList.forEach(p =>{
+        GAME_STATS.conversions.forEach((conv, i) =>{
+            if(conv.playerIndex == p.index){
+                p.inflectionPointNames.push( conv.openingType ); 
+                p.inflectionPointFrames.push( conv.startFrame ); 
+                p.ipFramesReversed.push( conv.startFrame ); 
+            }
+        });
+        p.ipFramesReversed.reverse();
     });
-    perspective.ipFramesReversed.reverse();
 }
 
 function displayMediaButtons(){
@@ -475,12 +506,12 @@ function drawBox(){
     ctx.closePath();
 }
 
-function drawCircle(x, y, r, color){
+function drawCircle(x, y, r, fillColor, strokeColor){
     ctx.beginPath();
     ctx.arc(x, y-r, r, 0, 2 * Math.PI);
     ctx.lineWidth = "2";
-    ctx.strokeStyle = "white";
-    ctx.fillStyle = color;
+    ctx.strokeStyle = strokeColor;
+    ctx.fillStyle = fillColor;
     ctx.fill();
     ctx.stroke();
     ctx.closePath();
@@ -490,10 +521,10 @@ function drawDebugView(){
     let floor = (CANVAS_HEIGHT * stage.floor_offset) + 5;
     let platformDepth = 3;
     let stageDepth = 5;
+    let inflectionColor = '#fff' 
 
     // draw center point
-    drawCircle(CANVAS_WIDTH / 2  + stage.x_offset, floor, 5, '#00ff00');
-    let inflectionColor = '#fff' 
+    drawCircle(CANVAS_WIDTH / 2  + stage.x_offset, floor, 5, '#00ff00', '#fff');
     // draw inflection points
     perspective.inflectionPointFrames.forEach((ip, i) =>{
         switch(perspective.inflectionPointNames[i]){
@@ -507,11 +538,11 @@ function drawDebugView(){
                 inflectionColor = '#fff000';
                 break;
         }
-        drawCircle(CANVAS_WIDTH * ip/lastFrame, CANVAS_HEIGHT, 5, inflectionColor);
+        drawCircle(CANVAS_WIDTH * ip/lastFrame, CANVAS_HEIGHT, 5, inflectionColor, '#fff');
     });
 
     // draw playback percentage
-    drawCircle(CANVAS_WIDTH * currentFrame/lastFrame, CANVAS_HEIGHT, 5, '#ff0000');
+    drawCircle(CANVAS_WIDTH * currentFrame/lastFrame, CANVAS_HEIGHT, 5, '#ff0000', '#fff');
     
 
     
