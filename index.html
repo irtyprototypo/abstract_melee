@@ -1,0 +1,70 @@
+<html>
+    <head>
+    
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+        <link rel="stylesheet" href="index.css">
+
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+        <script defer type="text/javascript" src="js/Stage.js"></script>
+        <script defer type="text/javascript" src="js/Zone.js"></script>
+        <script defer type="text/javascript" src="js/Player.js"></script>
+        <script defer type="text/javascript" src="js/index.js"></script>
+        <script defer type="text/javascript" src="js/slp_replay.json"></script>
+        <script defer type="text/javascript" src="js/game_data.json"></script>
+    </head>
+    <body onload="init()">
+        <div class=" container-fluid max-width">
+            <div class="row">
+                <div id="canvas-container" class="col-sm-12">
+                    <canvas id="game-canvas"></canvas>
+                </div>
+            </div>
+            <div class="row">
+                <div id="upload-control-container" class="container col-sm-4">
+                    
+                    <div id="upload-btn-container" >
+                        <form id="upload-form" action=""  >
+                            <button disabled id="upload-btn" onClick="upload(this.form); return false;" class="btn" type="submit" >
+                                <div class="icon-div"><p>↻</p></div></button>
+                            <!-- <input type="file" id="slp_upload" name="filename" value="upload" > -->
+                        </form>
+                    </div>
+                    
+                    <div id="upload-text-container" >
+                        <div id="p1-text-container" onClick="setPerspective(0);">
+                            <div id="p1-name"> </div>
+                            <div id="p1-code"> </div>
+                        </div>
+                        <div id="vs-text-container">
+                            <div id="vs-text">vs</div>
+                        </div>
+                        <div id="p2-text-container" onClick="setPerspective(1);">
+                            <div id="p2-name"> </div>
+                            <div id="p2-code"> </div>
+                        </div>
+                    </div>
+                
+                
+                </div>
+                <div id="media-controls-container" class="container col-sm-4">
+                    <button id="previous-inflection-point-btn" onClick="mediaButtonPressed('inflectionPrevious');" class="btn" type="button">
+                        <div class="icon-div"><p>⇜</p></div></button>
+                    <button id="previous-frame-btn" onClick="mediaButtonPressed('previousFrame');" class="btn" type="button" >
+                        <div class="icon-div"><p>⥆</p></div></button>
+                    <button id="play-toggle-btn" onClick="mediaButtonPressed('togglePlay');" class="btn" type="button" >
+                        <span class="glyphicon glyphicon-play"></span></button>
+                    <button id="next-frame-btn" onClick="mediaButtonPressed('nextFrame');" class="btn" type="button" >
+                        <div class="icon-div"><p>⥅</p></div></button>
+                    <button id="next-inflection-point-btn" onClick="mediaButtonPressed('inflectionAdvance');" class="btn" type="button">
+                        <div class="icon-div"><p>⇝</p></div></button>
+                </div>
+                <div id="graphics-controls-container" class="container col-sm-4">
+                    <button id="stage-frame-btn" onClick="toggleStageFrame();" class="btn btn-danger" type="button" > Debug View </button>
+                    <button id="zone-visibility-btn" onClick="toggleZoneVisibility();" class="btn btn-warning" type="button" > Zones </button>
+                    <button id="char-bubbles-btn" onClick="toggleCharacterBubbles();" class="btn btn-success" type="button" > Graphics </button>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
