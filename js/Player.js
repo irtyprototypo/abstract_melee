@@ -8,8 +8,8 @@ class Player{
         this.charColor = 'Default';
         this.charImg = new Image();
         this.charImg.src = `img/heads_${this.charFacingDirection}/${this.charName}_${this.charColor}.png`;
-        this.positionX = 0;
-        this.positionY = 0;
+        this.positionX;
+        this.positionY;
         this.portColor = this.colorFromPort(this.port);
         this.name = '';
         this.code = '';
@@ -20,6 +20,10 @@ class Player{
         this.activePerspective;
         this.actionStateId;
         this.actionStateName;
+        this.inputX;
+        this.inputY;
+        this.rubberBandVisible = true;
+        
     }
 
     setPositionX(pos){ this.positionX = pos; }
@@ -35,12 +39,36 @@ class Player{
         stroke = (this.activePerspective) ?  '#00ff00' : '#fff';
         ctx.font = '20px Arial';
 
+        // draw rubber band
+        if(this.rubberBandVisible){
+            ctx.beginPath();
+            let stressFactor = Math.sqrt(Math.floor(canvasToMeleeX(this.positionX) ** 2 + canvasToMeleeY(this.positionY) ** 2)) * 2;
+            ctx.strokeStyle = `rgb(${Math.floor(0 + stressFactor)}, ${Math.floor(255 - stressFactor)}, 0)`;
+            ctx.lineWidth = 5;
+            ctx.moveTo(meleeToCanvasX(0), meleeToCanvasY(0));
+            ctx.lineTo(this.positionX, this.positionY - radius);
+            ctx.stroke();
+            ctx.closePath();
+        }
 
+        // draw character bubble
         if(characterBubbleVisible)
             drawCircle(this.positionX, this.positionY, radius, this.portColor, stroke);
+
+        //draw character head
         ctx.drawImage(this.charImg, this.positionX - 12, this.positionY - 43);
+        
+        //display action state text
         ctx.fillText(this.actionStateName, this.positionX - ctx.measureText(this.actionStateName).width/2, this.positionY - 70);
 
+
+        // console.log(rubberBandIntensity);
+    }
+
+
+    toggleRubberBand(){
+        console.log('band');
+        return this.rubberBandVisible = (this.rubberBandVisible) ? false : true;
     }
 
     setCharFacing(dir){

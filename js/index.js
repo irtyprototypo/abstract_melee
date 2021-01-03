@@ -33,6 +33,12 @@ function init(){
     GAME_STATS = slp_replay.data.stats;
     GAME_DATA = game_data.data;
 
+    console.log(GAME_FRAMES[37]);
+    console.log(GAME_METADATA);
+    console.log(GAME_SETTINGS);
+    console.log(GAME_STATS);
+    console.log(GAME_DATA);
+
     ctx = createCanvas();
 
     setPlayers();
@@ -59,6 +65,8 @@ function mainLoop(){
 
         
     updatePlayerPositions();
+    
+    // console.log(perspective.getRubberBandStress()); 
     
     zonesOccupied();
     drawGameScreen();
@@ -226,6 +234,9 @@ function updatePlayerPositions(){
             player.actionStateId = GAME_FRAMES[currentFrame].players[i].pre.actionStateId;
             player.actionStateName = getActionStateName(player.actionStateId);
 
+            player.inputX = GAME_FRAMES[currentFrame].players[i].pre.joystickX;
+            player.inputY = GAME_FRAMES[currentFrame].players[i].pre.joystickY;
+
         }
     });
 }
@@ -240,11 +251,8 @@ function getActionStateName(id){
         }
 
     });
-
     
-    // if(GAME_DATA.moves.id.includes(id))
-        // return GAME_DATA.moves.name[id];
-        return res;
+    return res;
 }
 
 
@@ -318,6 +326,10 @@ function toggleCharacterBubbles(){
         btn.classList.add('btn-success');
         btn.classList.remove('btn-danger');
     }
+
+    playerList.forEach(player => {
+        player.toggleRubberBand();
+    });
 }
 
 function toggleZoneVisibility(){
