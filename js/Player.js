@@ -18,6 +18,8 @@ class Player{
         this.inflectionPointFrames = [];
         this.ipFramesReversed = [];
         this.activePerspective;
+        this.actionStateId;
+        this.actionStateName;
     }
 
     setPositionX(pos){ this.positionX = pos; }
@@ -27,17 +29,18 @@ class Player{
     getPositionY(){ return this.positionY; }
 
     draw(){
+        
         let radius = 30;
         let stroke = '#000';
-        if(this.activePerspective == true)
-            stroke = '#00ff00';
-        else
-            stroke = '#fff';
+        stroke = (this.activePerspective) ?  '#00ff00' : '#fff';
+        ctx.font = '20px Arial';
 
-        // let stroke = this.activePerspective ? '#00ff00' : '#fff';
+
         if(characterBubbleVisible)
             drawCircle(this.positionX, this.positionY, radius, this.portColor, stroke);
         ctx.drawImage(this.charImg, this.positionX - 12, this.positionY - 43);
+        ctx.fillText(this.actionStateName, this.positionX - ctx.measureText(this.actionStateName).width/2, this.positionY - 70);
+
     }
 
     setCharFacing(dir){

@@ -11,7 +11,6 @@ let trails = false;
 let debugView = false;
 let zonesVisible = 1;
 let characterBubbleVisible = true;
-let printSippiData = true;
 let gameOver = false;
 
 /**
@@ -60,13 +59,6 @@ function mainLoop(){
 
         
     updatePlayerPositions();
-    // let astate = GAME_FRAMES[currentFrame].players[perspective.index].post.actionStateId;
-    // try{
-    //     console.log(`${perspective.name} used ${GAME_DATA.moves[astate].name}`);
-    // } catch(e){
-    //     console.log(`${perspective.name} used ${astate}`);
-    // }
-    
     
     zonesOccupied();
     drawGameScreen();
@@ -163,19 +155,8 @@ function drawGameScreen(){
     // drawMeleeGrid();
 
     
-
     // draw players
-    playerList.forEach( player =>{
-        // let astate = GAME_FRAMES[currentFrame].player.post.actionStateId;
-        // try{
-        //     console.log(`${player.name} used ${GAME_DATA.moves[astate].name}`);
-        // } catch(e){
-        //     console.log(`${player.name} used ${astate}`);
-        // }
-
-
-        player.draw();
-    });
+    playerList.forEach( player => { player.draw(); });
 }
 
 function drawZones(){
@@ -234,15 +215,36 @@ function setStage(){
 function updatePlayerPositions(){
     playerList.forEach((player, i, arr) =>{
         if((currentFrame >= 0) && (currentFrame < lastFrame) && GAME_FRAMES[currentFrame]){
-            let posX = meleeToCanvasX(GAME_FRAMES[currentFrame].players[i].post.positionX);
-            let posY = meleeToCanvasY(GAME_FRAMES[currentFrame].players[i].post.positionY);
-            let facingDirection = GAME_FRAMES[currentFrame].players[i].post.facingDirection;
+            let posX = meleeToCanvasX(GAME_FRAMES[currentFrame].players[i].pre.positionX);
+            let posY = meleeToCanvasY(GAME_FRAMES[currentFrame].players[i].pre.positionY);
+            let facingDirection = GAME_FRAMES[currentFrame].players[i].pre.facingDirection;
             
-            playerList[i].setPositionX(posX);
-            playerList[i].setPositionY(posY);
-            playerList[i].setCharFacing(facingDirection);
+            player.setPositionX(posX);
+            player.setPositionY(posY);
+            player.setCharFacing(facingDirection);
+
+            player.actionStateId = GAME_FRAMES[currentFrame].players[i].pre.actionStateId;
+            player.actionStateName = getActionStateName(player.actionStateId);
+
         }
     });
+}
+
+function getActionStateName(id){
+    let res = id;
+    GAME_DATA.moves.forEach(move =>{
+        if (move.id == id){
+            res = move.name; 
+            if(move.description != null)
+                res = move.description;
+        }
+
+    });
+
+    
+    // if(GAME_DATA.moves.id.includes(id))
+        // return GAME_DATA.moves.name[id];
+        return res;
 }
 
 
@@ -299,33 +301,6 @@ async function loadSlpDataFromServer(){
     .then( res => { return res.json(); })
     .then( metadata => { GAME_METADATA = metadata });
     
-}
-
-async function upload(form){
-    // event.preventDefault();
-    
-    // let wat = document.getElementById('upload-form').value;
-    // console.log(wat);
-    // let yo = $(wat.value).serialize();
-    // console.log(yo);
-
-    // let wat = document.getElementById('slp_upload').value;
-    // console.log(form.slp_upload.value);
-    // let wat = form.slp_upload.value;
-    // let ser = $(form.slp_upload.value).serialize();
-    // console.log(ser);
-
-    // let yo = data.value;
-    // yo = $(yo).serialize();
-    // console.log(`v: ${yo}`);
-    
-    // await fetch(`http://localhost:8080/slp_file`, {
-    //     method: 'POST',
-    //     headers: {'Content-Type':'application/x-www-form-urlencoded'},
-    //     body: JSON.stringify({ "user": "wat" })
-    // })
-    // .then(response => { return response; })
-    // .then( data => { return data; });
 }
 
 
