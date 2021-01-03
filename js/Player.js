@@ -23,6 +23,7 @@ class Player{
         this.inputX;
         this.inputY;
         this.rubberBandVisible = true;
+        this.diVisible = true;
         
     }
 
@@ -33,11 +34,7 @@ class Player{
     getPositionY(){ return this.positionY; }
 
     draw(){
-        
-        let radius = 30;
-        let stroke = '#000';
-        stroke = (this.activePerspective) ?  '#00ff00' : '#fff';
-        ctx.font = '20px Arial';
+        let radius = 25;
 
         // draw rubber band
         if(this.rubberBandVisible){
@@ -51,25 +48,43 @@ class Player{
             ctx.closePath();
         }
 
+        
+        // draw DI
+        if(this.diVisible){
+            let scale = 80;
+            ctx.beginPath();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 5;
+            ctx.moveTo(this.positionX, this.positionY - radius);
+            ctx.lineTo(this.positionX + (this.inputX * scale), (this.positionY - radius) - (this.inputY * scale));
+            ctx.stroke();
+            ctx.closePath();
+
+        }
+
+        let stroke = (this.activePerspective) ?  '#00ff00' : '#fff';
+        ctx.strokeStyle = stroke;
+        ctx.fillStyle = this.portColor;
+
         // draw character bubble
         if(characterBubbleVisible)
             drawCircle(this.positionX, this.positionY, radius, this.portColor, stroke);
 
         //draw character head
-        ctx.drawImage(this.charImg, this.positionX - 12, this.positionY - 43);
+        ctx.drawImage(this.charImg, this.positionX - 12, this.positionY - radius - 13);
         
         //display action state text
+        ctx.font = '20px Arial';
         ctx.fillText(this.actionStateName, this.positionX - ctx.measureText(this.actionStateName).width/2, this.positionY - 70);
 
 
-        // console.log(rubberBandIntensity);
+
     }
 
 
-    toggleRubberBand(){
-        console.log('band');
-        return this.rubberBandVisible = (this.rubberBandVisible) ? false : true;
-    }
+    toggleRubberBand(){ return this.rubberBandVisible = (this.rubberBandVisible) ? false : true; }
+
+    toggleDI(){ return this.diVisible = (this.diVisible) ? false : true; }
 
     setCharFacing(dir){
         this.charFacingDirection = dir;

@@ -58,6 +58,7 @@ function init(){
 
 
 function mainLoop(){
+    // let frameRate = 16.67 * 2;
     let frameRate = 16.67;
 
     if (!isPaused)
@@ -329,6 +330,7 @@ function toggleCharacterBubbles(){
 
     playerList.forEach(player => {
         player.toggleRubberBand();
+        // player.toggleDI();
     });
 }
 
