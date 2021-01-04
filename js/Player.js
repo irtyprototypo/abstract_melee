@@ -22,8 +22,11 @@ class Player{
         this.actionStateName;
         this.inputX;
         this.inputY;
+        this.inputCX;
+        this.inputCY;
         this.rubberBandVisible = true;
         this.diVisible = true;
+        this.bodySize = 25;         // radius
         
     }
 
@@ -34,44 +37,43 @@ class Player{
     getPositionY(){ return this.positionY; }
 
     draw(){
-        let radius = 25;
+        let distanceFromCenter = Math.sqrt(Math.floor(canvasToMeleeX(this.positionX) ** 2 + canvasToMeleeY(this.positionY) ** 2));
+
 
         // draw rubber band
-        if(this.rubberBandVisible){
+
+        if(this.rubberBandVisible && distanceFromCenter < 160){
             ctx.beginPath();
-            let stressFactor = Math.sqrt(Math.floor(canvasToMeleeX(this.positionX) ** 2 + canvasToMeleeY(this.positionY) ** 2)) * 2;
+            let stressFactor = distanceFromCenter * 2;
             ctx.strokeStyle = `rgb(${Math.floor(0 + stressFactor)}, ${Math.floor(255 - stressFactor)}, 0)`;
             ctx.lineWidth = 5;
             ctx.moveTo(meleeToCanvasX(0), meleeToCanvasY(0));
-            ctx.lineTo(this.positionX, this.positionY - radius);
+            ctx.lineTo(this.positionX, this.positionY - this.bodySize);
             ctx.stroke();
             ctx.closePath();
         }
 
         
-        // draw DI
-        if(this.diVisible){
-            let scale = 80;
-            ctx.beginPath();
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 5;
-            ctx.moveTo(this.positionX, this.positionY - radius);
-            ctx.lineTo(this.positionX + (this.inputX * scale), (this.positionY - radius) - (this.inputY * scale));
-            ctx.stroke();
-            ctx.closePath();
+        // draw Left stick
+        if(this.diVisible)
+            this.drawAnologStick(80, '#d3d3d3', 'main');
 
-        }
+        // draw C stick
+        if(this.diVisible)
+            this.drawAnologStick(40, '#ff0', 'c');
+
 
         let stroke = (this.activePerspective) ?  '#00ff00' : '#fff';
+        // ctx.strokeStyle = '#abe7ff';
         ctx.strokeStyle = stroke;
         ctx.fillStyle = this.portColor;
 
         // draw character bubble
         if(characterBubbleVisible)
-            drawCircle(this.positionX, this.positionY, radius, this.portColor, stroke);
+            drawCircle(this.positionX, this.positionY, this.bodySize, this.portColor, stroke);
 
         //draw character head
-        ctx.drawImage(this.charImg, this.positionX - 12, this.positionY - radius - 13);
+        ctx.drawImage(this.charImg, this.positionX - 12, this.positionY - this.bodySize - 13);
         
         //display action state text
         ctx.font = '20px Arial';
@@ -79,6 +81,19 @@ class Player{
 
 
 
+    }
+
+    drawAnologStick(length, color, stick){
+        let stickX = (stick == 'c') ? this.inputCX : this.inputX;
+        let stickY = (stick == 'c') ? this.inputCY : this.inputY;
+
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 5;
+        ctx.moveTo(this.positionX, this.positionY - this.bodySize);
+        ctx.lineTo(this.positionX + (stickX * length), (this.positionY - this.bodySize) - (stickY * length));
+        ctx.stroke();
+        ctx.closePath();
     }
 
 

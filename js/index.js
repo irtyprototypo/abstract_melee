@@ -33,7 +33,7 @@ function init(){
     GAME_STATS = slp_replay.data.stats;
     GAME_DATA = game_data.data;
 
-    console.log(GAME_FRAMES[37]);
+    console.log(GAME_FRAMES);
     console.log(GAME_METADATA);
     console.log(GAME_SETTINGS);
     console.log(GAME_STATS);
@@ -51,7 +51,8 @@ function init(){
     lastFrame = GAME_METADATA.lastFrame;
 
     createZones(stage.name);
-    findInflectionPoints();
+    // findInflectionPoints();
+    generateInflectionPoints();
 
     requestAnimationFrame(mainLoop);
 }
@@ -113,6 +114,28 @@ function createZones(name){
     zoneList.push(new Zone('R Ledge', stage.right_edge, stage.y_offset, stage.right_edge + 15, stage.y_offset - 30));
     
 }
+
+function generateInflectionPoints(){
+    let knockdowns = [183, 191];
+    // let knockdowns = [191-1];
+    // let knockdowns = [354]
+    playerList.forEach(p =>{
+        // console.log(GAME_FRAMES.players[perspective]);
+        for(let i=0; i < lastFrame; i++){
+            let aStateId = GAME_FRAMES[i].players[p.index].pre.actionStateId;
+                
+            if (knockdowns.includes(aStateId)){
+                // console.log(GAME_DATA.actioneStates[aStateId].description);
+                p.inflectionPointNames.push( GAME_DATA.actioneStates[aStateId].description ); 
+                p.inflectionPointFrames.push( i ); 
+            }
+        }
+        p.ipFramesReversed = [...p.inflectionPointFrames];
+    });
+
+   console.log(`inflection points loaded`);
+}
+
 
 // just using "slippi conversions" for lack of a better deliminator
 function findInflectionPoints(){
@@ -233,28 +256,18 @@ function updatePlayerPositions(){
             player.setCharFacing(facingDirection);
 
             player.actionStateId = GAME_FRAMES[currentFrame].players[i].pre.actionStateId;
-            player.actionStateName = getActionStateName(player.actionStateId);
+            player.actionStateName = (GAME_DATA.actioneStates[player.actionStateId].description) ? GAME_DATA.actioneStates[player.actionStateId].description : GAME_DATA.actioneStates[player.actionStateId].name;
+
 
             player.inputX = GAME_FRAMES[currentFrame].players[i].pre.joystickX;
             player.inputY = GAME_FRAMES[currentFrame].players[i].pre.joystickY;
+            player.inputCX = GAME_FRAMES[currentFrame].players[i].pre.cStickX;
+            player.inputCY = GAME_FRAMES[currentFrame].players[i].pre.cStickY;
 
         }
     });
 }
 
-function getActionStateName(id){
-    let res = id;
-    GAME_DATA.moves.forEach(move =>{
-        if (move.id == id){
-            res = move.name; 
-            if(move.description != null)
-                res = move.description;
-        }
-
-    });
-    
-    return res;
-}
 
 
 // aspect ratio convertors
