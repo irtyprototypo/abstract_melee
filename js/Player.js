@@ -26,7 +26,7 @@ class Player{
         this.inputCY;
         this.rubberBandVisible = true;
         this.diVisible = true;
-        this.bodySize = 25;         // radius
+        this.bodySize;         // radius
         
     }
 
@@ -36,8 +36,9 @@ class Player{
     getPositionX(){ return this.positionX; }
     getPositionY(){ return this.positionY; }
 
-    draw(){
+    draw(window_scaler){
         let distanceFromCenter = Math.sqrt(Math.floor(canvasToMeleeX(this.positionX) ** 2 + canvasToMeleeY(this.positionY) ** 2));
+        this.bodySize = 36 * window_scaler;
 
 
         // draw rubber band
@@ -53,33 +54,86 @@ class Player{
             ctx.closePath();
         }
 
+        ctx.stroke();
         
-        // draw Left stick
-        if(this.diVisible)
+        // draw Left and c stick
+        if(this.diVisible){
             this.drawAnologStick(80, '#d3d3d3', 'main');
-
-        // draw C stick
-        if(this.diVisible)
             this.drawAnologStick(40, '#ff0', 'c');
-
-
-        let stroke = (this.activePerspective) ?  '#00ff00' : '#fff';
-        // ctx.strokeStyle = '#abe7ff';
-        ctx.strokeStyle = stroke;
-        ctx.fillStyle = this.portColor;
+        }
 
         // draw character bubble
         if(characterBubbleVisible)
-            drawCircle(this.positionX, this.positionY, this.bodySize, this.portColor, stroke);
+            this.drawCharacter();
 
         //draw character head
-        ctx.drawImage(this.charImg, this.positionX - 12, this.positionY - this.bodySize - 13);
+        let charHeadOffset = this.determineHeadOffset(this.charName);
+        ctx.drawImage(this.charImg, this.positionX - charHeadOffset, this.positionY - this.bodySize - 23);
         
         //display action state text
         ctx.font = '20px Arial';
         ctx.fillText(this.actionStateName, this.positionX - ctx.measureText(this.actionStateName).width/2, this.positionY - 70);
+        ctx.stroke();
+        ctx.closePath();
 
 
+    }
+
+
+    drawCharacter(){
+        let stroke = (this.activePerspective) ?  '#00ff00' : '#fff';
+        // ctx.lineWidth = 10;
+        ctx.strokeStyle = stroke;
+        // ctx.stroke();
+        ctx.lineWidth = 3;
+        let armLength = this.bodySize - 16;
+        let neckX = this.positionX;
+        let neckY = this.positionY-this.bodySize;
+        let torsoLength = this.bodySize/2;
+        let groinX = neckX;
+        let groinY = this.positionY-torsoLength;
+
+        ctx.beginPath();
+
+        switch(this.actionStateName){
+            case 'Dair':
+                // arms
+                ctx.moveTo(neckX, neckY);
+                ctx.lineTo(neckX-armLength/3, this.positionY-this.bodySize+15);
+                ctx.moveTo(neckX, neckY);
+                ctx.lineTo(neckX+armLength/3, this.positionY-this.bodySize+15);
+                // legs
+                ctx.moveTo(groinX, groinY);
+                ctx.lineTo(neckX-this.bodySize/12, this.positionY);
+                ctx.moveTo(groinX, groinY);
+                ctx.lineTo(neckX+this.bodySize/12, this.positionY);
+                // torso
+                ctx.moveTo(neckX, neckY);
+                ctx.lineTo(neckX, groinY);
+                break;
+            default:
+                // arms
+                ctx.moveTo(this.positionX, this.positionY-this.bodySize);
+                ctx.lineTo(this.positionX-armLength, this.positionY-this.bodySize);
+                ctx.moveTo(this.positionX, this.positionY-this.bodySize);
+                ctx.lineTo(this.positionX+armLength, this.positionY-this.bodySize);
+                // legs
+                ctx.moveTo(this.positionX, this.positionY-this.bodySize/2);
+                ctx.lineTo(this.positionX-this.bodySize/4, this.positionY);
+                ctx.moveTo(this.positionX, this.positionY-this.bodySize/2);
+                ctx.lineTo(this.positionX+this.bodySize/4, this.positionY);
+                // torso
+                ctx.moveTo(neckX, neckY);
+                ctx.lineTo(neckX, groinY);
+            break;
+        }
+        
+
+        ctx.stroke();
+        ctx.closePath();
+
+        // ctx.fillStyle = this.portColor;
+        // drawCircle(this.positionX, this.positionY, this.bodySize, this.portColor, stroke);
 
     }
 
@@ -105,6 +159,20 @@ class Player{
         this.charFacingDirection = dir;
         this.charImg = new Image();
         this.charImg.src = `img/heads_${this.charFacingDirection}/${this.charName}_${this.charColor}.png`;
+    }
+
+    determineHeadOffset(char){
+        switch(char){
+            case 'Falco':
+                if(this.charFacingDirection == 1)
+                    return 4;
+                else
+                    return 20;
+            case 'Falcon':
+                return 13;
+            default:
+                return 10;
+        }
     }
 
     colorFromPort(port){

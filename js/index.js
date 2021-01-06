@@ -1,5 +1,6 @@
-const CANVAS_WIDTH = 1208;
-const CANVAS_HEIGHT = 680;
+const WINDOW_SCALER = .85;
+const CANVAS_WIDTH = 1208 * WINDOW_SCALER;
+const CANVAS_HEIGHT = 680 * WINDOW_SCALER;
 
 let GAME_STATS, GAME_FRAMES, GAME_METADATA, GAME_SETTINGS, GAME_DATA, CHARACTERS;
 let ctx, lastFrame, stage, perspective;
@@ -34,6 +35,11 @@ function init(){
     GAME_DATA = game_data.data;
 
     console.log(GAME_FRAMES);
+    // GAME_FRAMES.forEach(frame =>{
+    //     if (frame.items)
+    //         console.log(frame);
+    // });
+
     console.log(GAME_METADATA);
     console.log(GAME_SETTINGS);
     console.log(GAME_STATS);
@@ -108,8 +114,8 @@ function setPerspective(playerIndex){
 function createZones(name){
 
     zoneList.push(new Zone('Center', stage.leftPlatformRight, stage.topPlatformBottom, stage.rightPlatformLeft, stage.y_offset));
-    zoneList.push(new Zone('L Corner', stage.leftPlatformLeft - 8, stage.leftPlatformBottom, stage.leftPlatformRight - 15, stage.y_offset - 3.3));
-    zoneList.push(new Zone('R Corner', stage.rightPlatformLeft + 15, stage.rightPlatformBottom, stage.rightPlatformRight + 8 , stage.y_offset - 3.3));
+    zoneList.push(new Zone('L Corner', stage.leftPlatformLeft - 15, stage.leftPlatformBottom, stage.leftPlatformRight - 15, stage.y_offset - 3.3));
+    zoneList.push(new Zone('R Corner', stage.rightPlatformLeft + 15, stage.rightPlatformBottom, stage.rightPlatformRight + 14 , stage.y_offset - 3.3));
     zoneList.push(new Zone('L Ledge', stage.left_edge - 15, stage.y_offset, stage.left_edge, stage.y_offset - 30));
     zoneList.push(new Zone('R Ledge', stage.right_edge, stage.y_offset, stage.right_edge + 15, stage.y_offset - 30));
     
@@ -188,7 +194,24 @@ function drawGameScreen(){
 
     
     // draw players
-    playerList.forEach( player => { player.draw(); });
+    playerList.forEach( player => { player.draw(WINDOW_SCALER); });
+
+    drawProjectiles();
+}
+
+function drawProjectiles(){
+    if(!GAME_FRAMES[currentFrame].items)
+        return;
+    
+    GAME_FRAMES[currentFrame].items.forEach(item =>{
+        // console.log(`${playerList[item.owner].name} threw an item with state ${item.state} on frame ${currentFrame}.`);
+        console.log(item.owner, item.state, item.typeId, currentFrame);
+        drawCircle(meleeToCanvasX(item.positionX), meleeToCanvasY(item.positionY), 3, playerList[item.owner].portColor, '#fff');
+    });
+
+
+
+
 }
 
 function drawZones(){
@@ -237,7 +260,7 @@ function setStage(){
             break;
     }
     
-    stage = new Stage(selectedStage.name, selectedStage.left_edge, selectedStage.right_edge, selectedStage.x_scaler, selectedStage.y_scaler, selectedStage.x_offset, selectedStage.y_offset, selectedStage.floor_offset);
+    stage = new Stage(selectedStage.name, selectedStage.left_edge, selectedStage.right_edge, selectedStage.x_scaler, selectedStage.y_scaler, selectedStage.x_offset, selectedStage.y_offset, selectedStage.floor_offset, WINDOW_SCALER);
     stage.setLeftPlatform(selectedStage.leftPlatformLeft, selectedStage.leftPlatformRight, selectedStage.leftPlatformBottom);
     stage.setRightPlatform(selectedStage.rightPlatformLeft, selectedStage.rightPlatformRight, selectedStage.rightPlatformBottom);
     stage.setTopPlatform(selectedStage.topPlatformLeft, selectedStage.topPlatformRight, selectedStage.topPlatformBottom);
@@ -482,7 +505,7 @@ function drawCircle(x, y, r, fillColor, strokeColor){
 }
 
 function drawInflectionPoints(){
-    let inflectionColor = '#fff' 
+    let inflectionColor = 'red' 
     perspective.inflectionPointFrames.forEach((ip, i) =>{
         switch(perspective.inflectionPointNames[i]){
             case 'neutral-win':
@@ -495,24 +518,35 @@ function drawInflectionPoints(){
                 inflectionColor = '#fff000';
                 break;
         }
+
         drawCircle(CANVAS_WIDTH * ip/lastFrame, CANVAS_HEIGHT, 5, inflectionColor, '#fff');
     });
 }
 
 function drawPlaybackPosition(){
     // draw playback frame text
+
     drawCircle(CANVAS_WIDTH * currentFrame/lastFrame, CANVAS_HEIGHT, 5, '#ff0000', '#fff');
     ctx.font = '20px Arial';
-    ctx.fillStyle = '#fff';
-    let text = `${currentFrame}/${lastFrame}`;
     let screen_offset = currentFrame < lastFrame/25 ? 40 : 0;
+    let text = `${currentFrame}/${lastFrame}`;
 
+    // change text for inflection point
     if(perspective.inflectionPointFrames.includes(currentFrame))
         text = `${perspective.inflectionPointNames[perspective.inflectionPointFrames.indexOf(currentFrame)]}`;
     else
         text = `${currentFrame}/${lastFrame}`;
     
-    ctx.fillText(text, screen_offset + (CANVAS_WIDTH * currentFrame/lastFrame) - ctx.measureText(text).width/2, CANVAS_HEIGHT - 20);
+    let textX = screen_offset + (CANVAS_WIDTH * currentFrame/lastFrame) - ctx.measureText(text).width/2;
+    let textY = CANVAS_HEIGHT - 20;
+    
+    ctx.strokeStyle = "#000";
+    ctx.strokeText(text, textX, textY);
+    
+    ctx.fillStyle = '#fff';
+    ctx.fillText(text, textX, textY);
+    ctx.closePath();
+
 
 
 

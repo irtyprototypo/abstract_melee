@@ -1,13 +1,13 @@
 class Stage{
-    constructor(name, left_edge, right_edge, x_scaler, y_scaler, x_offset, y_offset, floor_offset){
+    constructor(name, left_edge, right_edge, x_scaler, y_scaler, x_offset, y_offset, floor_offset, window_scaler){
         this.name = name;
         this.img = new Image();
         this.img.id = 'background_image';
         this.img.src = `img/screenshots/${this.name}/stage.png`;
         this.left_edge = left_edge;
         this.right_edge = right_edge;
-        this.x_scaler = x_scaler;
-        this.y_scaler = y_scaler;
+        this.x_scaler = x_scaler * window_scaler;
+        this.y_scaler = y_scaler * window_scaler;
         this.x_offset = x_offset;
         this.y_offset = y_offset;
         this.floor_offset = floor_offset;
