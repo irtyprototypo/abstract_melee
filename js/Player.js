@@ -132,7 +132,7 @@ class Player{
         ctx.stroke();
         ctx.closePath();
 
-        // ctx.fillStyle = this.portColor;
+        ctx.fillStyle = this.portColor;
         // drawCircle(this.positionX, this.positionY, this.bodySize, this.portColor, stroke);
 
     }

@@ -16,13 +16,12 @@ let gameOver = false;
 
 /**
  * to do
- *  - upload json file
+ *  - fix projectiles
  *  - options engine
  *  - more zones!
  *  - threat zones
  *  - draw DI
  *  - HUD
- *  - items/projectiles
  * 
  */
 
@@ -35,11 +34,6 @@ function init(){
     GAME_DATA = game_data.data;
 
     console.log(GAME_FRAMES);
-    // GAME_FRAMES.forEach(frame =>{
-    //     if (frame.items)
-    //         console.log(frame);
-    // });
-
     console.log(GAME_METADATA);
     console.log(GAME_SETTINGS);
     console.log(GAME_STATS);
@@ -112,7 +106,6 @@ function setPerspective(playerIndex){
 
 
 function createZones(name){
-
     zoneList.push(new Zone('Center', stage.leftPlatformRight, stage.topPlatformBottom, stage.rightPlatformLeft, stage.y_offset));
     zoneList.push(new Zone('L Corner', stage.leftPlatformLeft - 15, stage.leftPlatformBottom, stage.leftPlatformRight - 15, stage.y_offset - 3.3));
     zoneList.push(new Zone('R Corner', stage.rightPlatformLeft + 15, stage.rightPlatformBottom, stage.rightPlatformRight + 14 , stage.y_offset - 3.3));
@@ -205,7 +198,7 @@ function drawProjectiles(){
     
     GAME_FRAMES[currentFrame].items.forEach(item =>{
         // console.log(`${playerList[item.owner].name} threw an item with state ${item.state} on frame ${currentFrame}.`);
-        console.log(item.owner, item.state, item.typeId, currentFrame);
+        // console.log(item.owner, item.state, item.typeId, currentFrame);
         drawCircle(meleeToCanvasX(item.positionX), meleeToCanvasY(item.positionY), 3, playerList[item.owner].portColor, '#fff');
     });
 
