@@ -52,8 +52,7 @@ class Player{
         }
 
         // draw character bubble
-        if(characterBubbleVisible)
-            this.drawCharacter();
+        this.drawCharacter();
 
         //draw character head
         let charHeadOffset = this.determineHeadOffset(this.charName);

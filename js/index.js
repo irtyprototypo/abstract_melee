@@ -11,12 +11,11 @@ let isPaused = true;
 let trails = false;
 let debugView = false;
 let zonesVisible = 1;
-let characterBubbleVisible = true;
+let bandsVisible = 1;
 let gameOver = false;
 
 /**
  * to do
- *  - fix projectiles
  *  - options engine
  *  - more zones!
  *  - threat zones
@@ -343,24 +342,20 @@ async function loadSlpDataFromServer(){
 
 
 // toggle graphic buttons
-function toggleCharacterBubbles(){
-    let btn = document.getElementById("char-bubbles-btn");
-    if(characterBubbleVisible == true){
-        console.log('Character bubble disabled.')
-        characterBubbleVisible = false;
+function toggleRubberBand(){
+    let btn = document.getElementById("char-band-btn");
+    if(bandsVisible == true){
+        console.log('Character rubber bands disabled.')
+        bandsVisible = false;
         btn.classList.remove('btn-success');
         btn.classList.add('btn-danger');
     }else{
-        console.log('Character bubble enabled.')
-        characterBubbleVisible = true;
+        console.log('Character rubber bands enabled.')
+        bandsVisible = true;
         btn.classList.add('btn-success');
         btn.classList.remove('btn-danger');
     }
-
-    playerList.forEach(player => {
-        player.toggleRubberBand();
-        // player.toggleDI();
-    });
+    playerList.forEach(player => { player.toggleRubberBand(); });
 }
 
 function toggleZoneVisibility(){
