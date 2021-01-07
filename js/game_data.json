@@ -115,7 +115,7 @@ const game_data = {
             { "id": 21, "name": "Run" },
             { "id": 22, "name": "RunDirect" },
             { "id": 23, "name": "RunBrake" },
-            { "id": 24, "name": "KneeBend", "description": "Pre-jump animation" },
+            { "id": 24, "name": "KneeBend", "description": "Jumpsquat" },
             { "id": 25, "name": "JumpF", "description": "First jump forward" },
             { "id": 26, "name": "JumpB", "description": "First jump backward" },
             { "id": 27, "name": "JumpAerialF", "description": "Aerial jump forward" },

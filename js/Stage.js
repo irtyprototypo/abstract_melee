@@ -1,9 +1,8 @@
 class Stage{
     constructor(name, left_edge, right_edge, x_scaler, y_scaler, x_offset, y_offset, floor_offset, window_scaler){
         this.name = name;
-        this.img = new Image();
-        this.img.id = 'background_image';
-        this.img.src = `img/screenshots/${this.name}/stage.png`;
+        this.background = new Image();
+        this.background.src = `img/stages/${this.name}.png`;
         this.left_edge = left_edge;
         this.right_edge = right_edge;
         this.x_scaler = x_scaler * window_scaler;
@@ -31,7 +30,7 @@ class Stage{
         this.topPlatformBottom = bottom;
     }
 
-    drawStage(){
-        ctx.drawImage(this.img, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    draw(){
+        ctx.drawImage(this.background, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     }
 }

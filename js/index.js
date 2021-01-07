@@ -1,4 +1,4 @@
-const WINDOW_SCALER = .85;
+const WINDOW_SCALER = 1;
 const CANVAS_WIDTH = 1208 * WINDOW_SCALER;
 const CANVAS_HEIGHT = 680 * WINDOW_SCALER;
 
@@ -46,7 +46,7 @@ function init(){
     guiNameColors();
 
     setStage();
-    stage.drawStage();
+    stage.draw();
 
     lastFrame = GAME_METADATA.lastFrame;
 
@@ -171,7 +171,7 @@ function drawGameScreen(){
     // draw background
     if(!trails){
         cleanSlate();
-        stage.drawStage();
+        stage.draw();
     }
     
     drawInflectionPoints();
@@ -604,7 +604,7 @@ function drawDebugView(){
 function cleanSlate(){
     ctx.beginPath();
     ctx.rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    ctx.fillStyle = '#808080';
+    // ctx.fillStyle = '#808080';
     ctx.lineWidth = 0;
     ctx.strokeStyle = '#000';
     ctx.fill()

@@ -25,7 +25,7 @@ class Player{
         this.inputCX;
         this.inputCY;
         this.rubberBandVisible = true;
-        this.diVisible = true;
+        this.diVisible = false;
         this.bodySize;         // radius
         
     }
@@ -37,24 +37,13 @@ class Player{
     getPositionY(){ return this.positionY; }
 
     draw(window_scaler){
-        let distanceFromCenter = Math.sqrt(Math.floor(canvasToMeleeX(this.positionX) ** 2 + canvasToMeleeY(this.positionY) ** 2));
         this.bodySize = 36 * window_scaler;
 
 
         // draw rubber band
+        if(this.rubberBandVisible)
+            this.drawRubberBand();
 
-        if(this.rubberBandVisible && distanceFromCenter < 160){
-            ctx.beginPath();
-            let stressFactor = distanceFromCenter * 2;
-            ctx.strokeStyle = `rgb(${Math.floor(0 + stressFactor)}, ${Math.floor(255 - stressFactor)}, 0)`;
-            ctx.lineWidth = 5;
-            ctx.moveTo(meleeToCanvasX(0), meleeToCanvasY(0));
-            ctx.lineTo(this.positionX, this.positionY - this.bodySize);
-            ctx.stroke();
-            ctx.closePath();
-        }
-
-        ctx.stroke();
         
         // draw Left and c stick
         if(this.diVisible){
@@ -79,6 +68,25 @@ class Player{
 
     }
 
+    drawRubberBand(){
+
+        let distanceFromCenter = Math.sqrt(Math.floor(canvasToMeleeX(this.positionX) ** 2 + canvasToMeleeY(this.positionY) ** 2));
+        if(distanceFromCenter > 160)
+            return;
+
+        ctx.beginPath();
+        let stressFactor = distanceFromCenter * 2;
+        ctx.setLineDash([distanceFromCenter/3, distanceFromCenter/3]);/*dashes are 5px and spaces are 3px*/
+        // ctx.setLineDash([5, 15]);/*dashes are 5px and spaces are 3px*/
+        ctx.strokeStyle = `rgb(${Math.floor(0 + stressFactor)}, ${Math.floor(255 - stressFactor)}, 0)`;
+        ctx.lineWidth = 3;
+        ctx.moveTo(meleeToCanvasX(0), meleeToCanvasY(0));
+        ctx.lineTo(this.positionX, this.positionY - this.bodySize * 2/3);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.closePath();
+    }
+
 
     drawCharacter(){
         let stroke = (this.activePerspective) ?  '#00ff00' : '#fff';
@@ -92,11 +100,10 @@ class Player{
         let torsoLength = this.bodySize/2;
         let groinX = neckX;
         let groinY = this.positionY-torsoLength;
-
         ctx.beginPath();
 
-        switch(this.actionStateName){
-            case 'Dair':
+        switch(this.actionStateId){
+            case 69:    // dair
                 // arms
                 ctx.moveTo(neckX, neckY);
                 ctx.lineTo(neckX-armLength/3, this.positionY-this.bodySize+15);
@@ -111,6 +118,43 @@ class Player{
                 ctx.moveTo(neckX, neckY);
                 ctx.lineTo(neckX, groinY);
                 break;
+            case 360:       // shine
+            case 361:
+            case 362:
+            case 363:
+            case 364:
+            case 365:
+            case 366:
+            case 367:
+            case 368:
+            case 369:
+                if(this.charName == 'Falco' || this.charName == 'Fox'){
+                    console.log('shine');
+                    // arms
+                    ctx.moveTo(this.positionX, this.positionY-this.bodySize);
+                    ctx.lineTo(this.positionX-armLength, this.positionY-this.bodySize);
+                    ctx.moveTo(this.positionX, this.positionY-this.bodySize);
+                    ctx.lineTo(this.positionX+armLength, this.positionY-this.bodySize);
+                    // legs
+                    ctx.moveTo(this.positionX, this.positionY-this.bodySize/2);
+                    ctx.lineTo(this.positionX-this.bodySize/4, this.positionY);
+                    ctx.moveTo(this.positionX, this.positionY-this.bodySize/2);
+                    ctx.lineTo(this.positionX+this.bodySize/4, this.positionY);
+                    // torso
+                    ctx.moveTo(neckX, neckY);
+                    ctx.lineTo(neckX, groinY);
+
+                    // blip
+                    ctx.moveTo(this.positionX, this.positionY-this.bodySize-10);
+                    ctx.lineTo(this.positionX-15, this.positionY-this.bodySize);
+                    ctx.lineTo(this.positionX-15, this.positionY-this.bodySize+18);
+                    ctx.lineTo(this.positionX, this.positionY-this.bodySize+30);
+                    ctx.lineTo(this.positionX+15, this.positionY-this.bodySize+18);
+                    ctx.lineTo(this.positionX+15, this.positionY-this.bodySize);
+
+                }
+                break;
+
             default:
                 // arms
                 ctx.moveTo(this.positionX, this.positionY-this.bodySize);
@@ -125,13 +169,9 @@ class Player{
                 // torso
                 ctx.moveTo(neckX, neckY);
                 ctx.lineTo(neckX, groinY);
-            break;
+                break;
         }
         
-
-        ctx.stroke();
-        ctx.closePath();
-
         ctx.fillStyle = this.portColor;
         // drawCircle(this.positionX, this.positionY, this.bodySize, this.portColor, stroke);
 
