@@ -1,4 +1,4 @@
-const WINDOW_SCALER = 1;
+const WINDOW_SCALER = .8;
 const CANVAS_WIDTH = 1208 * WINDOW_SCALER;
 const CANVAS_HEIGHT = 680 * WINDOW_SCALER;
 
@@ -51,7 +51,7 @@ function init(){
 
     createZones(stage.name);
     // findInflectionPoints();
-    generateInflectionPoints();
+    generateInflectionPoints('knockdowns grabs');
 
     requestAnimationFrame(mainLoop);
 }
@@ -106,29 +106,49 @@ function setPerspective(playerIndex){
 
 function createZones(name){
     zoneList.push(new Zone('Center', stage.leftPlatformRight, stage.topPlatformBottom, stage.rightPlatformLeft, stage.y_offset));
-    zoneList.push(new Zone('L Corner', stage.leftPlatformLeft - 15, stage.leftPlatformBottom, stage.leftPlatformRight - 15, stage.y_offset - 3.3));
-    zoneList.push(new Zone('R Corner', stage.rightPlatformLeft + 15, stage.rightPlatformBottom, stage.rightPlatformRight + 14 , stage.y_offset - 3.3));
+    zoneList.push(new Zone('L Corner', stage.leftPlatformLeft - 10, stage.leftPlatformBottom, stage.leftPlatformRight - 15, stage.y_offset - 3.3));
+    zoneList.push(new Zone('R Corner', stage.rightPlatformLeft + 15, stage.rightPlatformBottom, stage.rightPlatformRight + 10 , stage.y_offset - 3.3));
     zoneList.push(new Zone('L Ledge', stage.left_edge - 15, stage.y_offset, stage.left_edge, stage.y_offset - 30));
     zoneList.push(new Zone('R Ledge', stage.right_edge, stage.y_offset, stage.right_edge + 15, stage.y_offset - 30));
     
 }
 
-function generateInflectionPoints(){
+function generateInflectionPoints(optionStr){
     let knockdowns = [183, 191];
-    // let knockdowns = [191-1];
-    // let knockdowns = [354]
+    let techOptions = [199, 200, 201, 202, 203, 204];
+    let grabs = [213, 226];
+    let shield = [179, 180, 181, 182];
+    
+    let lookingFor = [];
+    let options = optionStr.split(' ');
+    console.log(options);
+    if(options.includes('knockdowns'))
+        lookingFor = lookingFor.concat(knockdowns);
+    if(options.includes('techs'))
+        lookingFor = lookingFor.concat(techOptions);
+    if(options.includes('grabs'))
+        lookingFor = lookingFor.concat(grabs);
+    if(options.includes('shield'))
+        lookingFor = lookingFor.concat(shield);
+
+    console.log(lookingFor);
     playerList.forEach(p =>{
         // console.log(GAME_FRAMES.players[perspective]);
         for(let i=0; i < lastFrame; i++){
+            let prevAStateId = GAME_FRAMES[i-1].players[p.index].pre.actionStateId;
+            // if(!prevAStateId)
+                // return;
             let aStateId = GAME_FRAMES[i].players[p.index].pre.actionStateId;
+            let nextAStateId = GAME_FRAMES[i+1].players[p.index].pre.actionStateId;
                 
-            if (knockdowns.includes(aStateId)){
+            if (lookingFor.includes(aStateId) && !lookingFor.includes(prevAStateId) ){
                 // console.log(GAME_DATA.actioneStates[aStateId].description);
                 p.inflectionPointNames.push( GAME_DATA.actioneStates[aStateId].description ); 
                 p.inflectionPointFrames.push( i ); 
+                p.ipFramesReversed.push( i ); 
             }
         }
-        p.ipFramesReversed = [...p.inflectionPointFrames];
+        p.ipFramesReversed.reverse();
     });
 
    console.log(`inflection points loaded`);

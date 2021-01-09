@@ -1,6 +1,6 @@
 
 const { default: SlippiGame } = require('@slippi/slippi-js');
-const game = new SlippiGame("uploads/dl.slp");
+const game = new SlippiGame("uploads/gam.slp");
 const fs = require('fs');
 
 str = `const slp_replay ={
