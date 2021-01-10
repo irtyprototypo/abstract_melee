@@ -14,9 +14,8 @@ class Player{
         this.name = '';
         this.code = '';
         this.zones = new Set();
-        this.inflectionPointNames = [];
-        this.inflectionPointFrames = [];
-        this.ipFramesReversed = [];
+        this.inflectionPoints = [];
+        this.inflectionPointsReversed = [];
         this.activePerspective;
         this.actionStateId;
         this.actionStateName;
@@ -37,7 +36,7 @@ class Player{
     getPositionY(){ return this.positionY; }
 
     draw(window_scaler){
-        this.bodySize = 36 * window_scaler;
+        this.bodySize = 100 * window_scaler;
 
 
         // draw rubber band
@@ -54,10 +53,6 @@ class Player{
         // draw character bubble
         this.drawCharacter();
 
-        //draw character head
-        let charHeadOffset = this.determineHeadOffset(this.charName);
-        ctx.drawImage(this.charImg, this.positionX - charHeadOffset, this.positionY - this.bodySize - 23);
-        
         //display action state text
         ctx.font = '20px Arial';
         ctx.fillText(this.actionStateName, this.positionX - ctx.measureText(this.actionStateName).width/2, this.positionY - 70);
@@ -80,7 +75,7 @@ class Player{
         ctx.strokeStyle = `rgb(${Math.floor(0 + stressFactor)}, ${Math.floor(255 - stressFactor)}, 0)`;
         ctx.lineWidth = 3;
         ctx.moveTo(meleeToCanvasX(0), meleeToCanvasY(0));
-        ctx.lineTo(this.positionX, this.positionY - this.bodySize * 2/3);
+        ctx.lineTo(this.positionX, this.positionY - this.bodySize / 3);
         ctx.stroke();
         ctx.setLineDash([]);
         ctx.closePath();
@@ -88,36 +83,25 @@ class Player{
 
 
     drawCharacter(){
-        let stroke = (this.activePerspective) ?  '#00ff00' : '#fff';
-        // ctx.lineWidth = 10;
-        ctx.strokeStyle = stroke;
-        // ctx.stroke();
-        ctx.lineWidth = 3;
-        let armLength = this.bodySize - 16;
-        let neckX = this.positionX;
-        let neckY = this.positionY-this.bodySize;
-        let torsoLength = this.bodySize/2;
-        let groinX = neckX;
-        let groinY = this.positionY-torsoLength;
-        ctx.beginPath();
+        let imgOffsetX = 38;
+        let imgOffsetY = 73;
+        
+        ctx.beginPath();        // has to be in here for drawRubberBand() to work properly...?
 
         switch(this.actionStateId){
-            case 69:    // dair
-                // arms
-                ctx.moveTo(neckX, neckY);
-                ctx.lineTo(neckX-armLength/3, this.positionY-this.bodySize+15);
-                ctx.moveTo(neckX, neckY);
-                ctx.lineTo(neckX+armLength/3, this.positionY-this.bodySize+15);
-                // legs
-                ctx.moveTo(groinX, groinY);
-                ctx.lineTo(neckX-this.bodySize/12, this.positionY);
-                ctx.moveTo(groinX, groinY);
-                ctx.lineTo(neckX+this.bodySize/12, this.positionY);
-                // torso
-                ctx.moveTo(neckX, neckY);
-                ctx.lineTo(neckX, groinY);
+            case 67: 
+            case 72:
+                this.charImg.src = this.getMoveImageSrc('bair');
                 break;
-            case 360:       // shine
+            case 69: 
+            case 74:
+                this.charImg.src = this.getMoveImageSrc('dair');
+                break;
+            case 65:
+            case 70:
+                this.charImg.src = this.getMoveImageSrc('nair');
+                break;
+            case 360:
             case 361:
             case 362:
             case 363:
@@ -127,54 +111,36 @@ class Player{
             case 367:
             case 368:
             case 369:
-                if(this.charName == 'Falco' || this.charName == 'Fox'){
-                    console.log('shine');
-                    // arms
-                    ctx.moveTo(this.positionX, this.positionY-this.bodySize);
-                    ctx.lineTo(this.positionX-armLength, this.positionY-this.bodySize);
-                    ctx.moveTo(this.positionX, this.positionY-this.bodySize);
-                    ctx.lineTo(this.positionX+armLength, this.positionY-this.bodySize);
-                    // legs
-                    ctx.moveTo(this.positionX, this.positionY-this.bodySize/2);
-                    ctx.lineTo(this.positionX-this.bodySize/4, this.positionY);
-                    ctx.moveTo(this.positionX, this.positionY-this.bodySize/2);
-                    ctx.lineTo(this.positionX+this.bodySize/4, this.positionY);
-                    // torso
-                    ctx.moveTo(neckX, neckY);
-                    ctx.lineTo(neckX, groinY);
-
-                    // blip
-                    ctx.moveTo(this.positionX, this.positionY-this.bodySize-10);
-                    ctx.lineTo(this.positionX-15, this.positionY-this.bodySize);
-                    ctx.lineTo(this.positionX-15, this.positionY-this.bodySize+18);
-                    ctx.lineTo(this.positionX, this.positionY-this.bodySize+30);
-                    ctx.lineTo(this.positionX+15, this.positionY-this.bodySize+18);
-                    ctx.lineTo(this.positionX+15, this.positionY-this.bodySize);
-
-                }
+                if(this.charName == 'Falco' || this.charName == 'Fox')
+                    this.charImg.src = this.getMoveImageSrc('shine');
+                else
+                    this.charImg.src = this.getMoveImageSrc('stand');
                 break;
-
             default:
-                // arms
-                ctx.moveTo(this.positionX, this.positionY-this.bodySize);
-                ctx.lineTo(this.positionX-armLength, this.positionY-this.bodySize);
-                ctx.moveTo(this.positionX, this.positionY-this.bodySize);
-                ctx.lineTo(this.positionX+armLength, this.positionY-this.bodySize);
-                // legs
-                ctx.moveTo(this.positionX, this.positionY-this.bodySize/2);
-                ctx.lineTo(this.positionX-this.bodySize/4, this.positionY);
-                ctx.moveTo(this.positionX, this.positionY-this.bodySize/2);
-                ctx.lineTo(this.positionX+this.bodySize/4, this.positionY);
-                // torso
-                ctx.moveTo(neckX, neckY);
-                ctx.lineTo(neckX, groinY);
+                this.charImg.src = this.getMoveImageSrc('stand');
                 break;
         }
-        
-        ctx.fillStyle = this.portColor;
-        // drawCircle(this.positionX, this.positionY, this.bodySize, this.portColor, stroke);
 
+        
+        if(this.charName != 'Falco'){
+            let bad = new Image();
+            let charHeadOffset = this.determineHeadOffset(this.charName);
+            bad.src = `img/heads_${this.charFacingDirection}/${this.charName}_${this.charColor}.png`;
+            ctx.drawImage(bad, this.positionX - charHeadOffset, this.positionY - this.bodySize * 2/3);
+        }
+        
+        ctx.drawImage(this.charImg, this.positionX - imgOffsetX, this.positionY - imgOffsetY  , this.bodySize, this.bodySize);
+        ctx.fillStyle = this.portColor;
     }
+
+    
+    getMoveImageSrc(move){
+        if (this.charName == 'Falco')
+            return `img/animations/${this.charName}/${move}_${this.charFacingDirection}.png`;
+        else
+            return `img/animations/stand_${this.charFacingDirection}.png`;
+    }
+
 
     drawAnologStick(length, color, stick){
         let stickX = (stick == 'c') ? this.inputCX : this.inputX;

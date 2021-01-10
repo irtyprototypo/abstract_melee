@@ -18,9 +18,11 @@ let gameOver = false;
  * to do
  *  - options engine
  *  - more zones!
+ *      - relative positions
  *  - threat zones
  *  - draw DI
- *  - HUD
+ *  - in game HUD
+ *  - better UI
  * 
  */
 
@@ -32,11 +34,11 @@ function init(){
     GAME_STATS = slp_replay.data.stats;
     GAME_DATA = game_data.data;
 
-    console.log(GAME_FRAMES);
-    console.log(GAME_METADATA);
-    console.log(GAME_SETTINGS);
-    console.log(GAME_STATS);
-    console.log(GAME_DATA);
+    // console.log(GAME_FRAMES);
+    // console.log(GAME_METADATA);
+    // console.log(GAME_SETTINGS);
+    // console.log(GAME_STATS);
+    // console.log(GAME_DATA);
 
     ctx = createCanvas();
 
@@ -52,6 +54,7 @@ function init(){
     createZones(stage.name);
     // findInflectionPoints();
     generateInflectionPoints('knockdowns grabs');
+
 
     requestAnimationFrame(mainLoop);
 }
@@ -73,7 +76,6 @@ function mainLoop(){
     drawGameScreen();
     displayMediaButtons();
     gameOverCheck();
-    generateOptions();
 
     setTimeout(_=> { requestAnimationFrame(mainLoop); }, frameRate);
 }
@@ -118,6 +120,7 @@ function generateInflectionPoints(optionStr){
     let techOptions = [199, 200, 201, 202, 203, 204];
     let grabs = [213, 226];
     let shield = [179, 180, 181, 182];
+    let rolls = [233, 234];
     
     let lookingFor = [];
     let options = optionStr.split(' ');
@@ -130,6 +133,8 @@ function generateInflectionPoints(optionStr){
         lookingFor = lookingFor.concat(grabs);
     if(options.includes('shield'))
         lookingFor = lookingFor.concat(shield);
+    if(options.includes('rolls'))
+        lookingFor = lookingFor.concat(rolls);
 
     console.log(lookingFor);
     playerList.forEach(p =>{
@@ -142,31 +147,15 @@ function generateInflectionPoints(optionStr){
             let nextAStateId = GAME_FRAMES[i+1].players[p.index].pre.actionStateId;
                 
             if (lookingFor.includes(aStateId) && !lookingFor.includes(prevAStateId) ){
-                // console.log(GAME_DATA.actioneStates[aStateId].description);
-                p.inflectionPointNames.push( GAME_DATA.actioneStates[aStateId].description ); 
-                p.inflectionPointFrames.push( i ); 
-                p.ipFramesReversed.push( i ); 
+                p.inflectionPoints.push(new inflectionPoint(i, GAME_DATA.actioneStates[aStateId].description))
             }
         }
-        p.ipFramesReversed.reverse();
+        p.inflectionPointsReversed = p.inflectionPoints.slice().reverse();
     });
 
-   console.log(`inflection points loaded`);
-}
+   console.log(`Inflection points loaded.`);
+   generateOptions();
 
-
-// just using "slippi conversions" for lack of a better deliminator
-function findInflectionPoints(){
-    playerList.forEach(p =>{
-        GAME_STATS.conversions.forEach((conv, i) =>{
-            if(conv.playerIndex == p.index){
-                p.inflectionPointNames.push( conv.openingType ); 
-                p.inflectionPointFrames.push( conv.startFrame ); 
-                p.ipFramesReversed.push( conv.startFrame ); 
-            }
-        });
-        p.ipFramesReversed.reverse();
-    });
 }
 
 function displayMediaButtons(){
@@ -455,14 +444,16 @@ function mediaButtonPressed(action){
             str = 'going back to';
             break;
         case 'inflectionAdvance':
-            targetFrame = perspective.inflectionPointFrames.find( ip => { return ip > currentFrame; });
+            try{ targetFrame = perspective.inflectionPoints.find( ip => { return ip.frame > currentFrame}).frame; }
+            catch(e){targetFrame = lastFrame}
             currentFrame = (targetFrame) ? targetFrame : currentFrame;
             isPaused = true;
             playBtn.innerHTML = '▶️'
             str = 'advancing to';
             break;
         case 'inflectionPrevious':
-            targetFrame = perspective.ipFramesReversed.find( ip => { return ip < currentFrame; });
+            try{ targetFrame = perspective.inflectionPointsReversed.find( ip => { return ip.frame < currentFrame}).frame; }
+            catch(e){targetFrame = 0}
             currentFrame = (targetFrame) ? targetFrame : currentFrame;
             isPaused = true;
             playBtn.innerHTML = '▶️'
@@ -514,20 +505,20 @@ function drawCircle(x, y, r, fillColor, strokeColor){
 
 function drawInflectionPoints(){
     let inflectionColor = 'red' 
-    perspective.inflectionPointFrames.forEach((ip, i) =>{
-        switch(perspective.inflectionPointNames[i]){
-            case 'neutral-win':
+        perspective.inflectionPoints.forEach( ip =>{
+            switch(ip.name){
+            case 'Successful grab':
                 inflectionColor = '#00ff00';
                 break;
             case 'counter-attack':
-                inflectionColor = '#0000ff';
+                inflectionColor = '#fff000';
                 break;
             default:
-                inflectionColor = '#fff000';
+                inflectionColor = '#0000ff';
                 break;
         }
 
-        drawCircle(CANVAS_WIDTH * ip/lastFrame, CANVAS_HEIGHT, 5, inflectionColor, '#fff');
+        drawCircle(CANVAS_WIDTH * ip.frame/lastFrame, CANVAS_HEIGHT, 5, inflectionColor, '#fff');
     });
 }
 
@@ -540,8 +531,9 @@ function drawPlaybackPosition(){
     let text = `${currentFrame}/${lastFrame}`;
 
     // change text for inflection point
-    if(perspective.inflectionPointFrames.includes(currentFrame))
-        text = `${perspective.inflectionPointNames[perspective.inflectionPointFrames.indexOf(currentFrame)]}`;
+    let currentIP = perspective.inflectionPoints.filter( ip => { if (ip.frame == currentFrame) return ip.name; });
+    if(currentIP[0])
+        text = `${currentIP[0].name}`;
     else
         text = `${currentFrame}/${lastFrame}`;
     

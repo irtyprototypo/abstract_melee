@@ -273,7 +273,7 @@ const game_data = {
             { "id": 179, "name": "Guard", "description": "Shielding" },
             { "id": 180, "name": "GuardOff", "description": "Shielding" },
             { "id": 181, "name": "GuardSetOff", "description": "Shielding" },
-            { "id": 182, "name": "GuardReflect", "description": "Shielding" },
+            { "id": 182, "name": "GuardReflect", "description": "Power Shielding" },
             { "id": 183, "name": "DownBoundU", "description": "Missed tech. Facing up" },
             { "id": 184, "name": "DownWaitU", "description": "Laying on ground facing up" },
             { "id": 185, "name": "DownDamageU", "description": "Getting hit laying on ground facing up" },
