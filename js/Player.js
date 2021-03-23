@@ -121,6 +121,7 @@ class Player{
                 break;
         }
 
+        ctx.drawImage(this.charImg, this.positionX - imgOffsetX, this.positionY - imgOffsetY  , this.bodySize, this.bodySize);
         
         if(this.charName != 'Falco'){
             let bad = new Image();
@@ -129,7 +130,6 @@ class Player{
             ctx.drawImage(bad, this.positionX - charHeadOffset, this.positionY - this.bodySize * 2/3);
         }
         
-        ctx.drawImage(this.charImg, this.positionX - imgOffsetX, this.positionY - imgOffsetY  , this.bodySize, this.bodySize);
         ctx.fillStyle = this.portColor;
     }
 
@@ -174,7 +174,7 @@ class Player{
                 else
                     return 20;
             case 'Falcon':
-                return 13;
+                return 10;
             default:
                 return 10;
         }

@@ -18,11 +18,13 @@ let gameOver = false;
  * to do
  *  - options engine
  *  - more zones!
- *      - relative positions
  *  - threat zones
+ *      - keep the string taught
  *  - draw DI
  *  - in game HUD
  *  - better UI
+ *      - say it again for the ones with glasses
+ *  - lexicon
  * 
  */
 
@@ -37,7 +39,7 @@ function init(){
     // console.log(GAME_FRAMES);
     // console.log(GAME_METADATA);
     // console.log(GAME_SETTINGS);
-    // console.log(GAME_STATS);
+    console.log(GAME_STATS);
     // console.log(GAME_DATA);
 
     ctx = createCanvas();
@@ -53,7 +55,7 @@ function init(){
 
     createZones(stage.name);
     // findInflectionPoints();
-    generateInflectionPoints('knockdowns grabs');
+    generateInflectionPoints('grabs rolls');
 
 
     requestAnimationFrame(mainLoop);
@@ -107,11 +109,67 @@ function setPerspective(playerIndex){
 
 
 function createZones(name){
+    let edgeZoneHeight = 30;
+    let edgeZoneWidth = 15;
+    let lmaodudwtfareyoudoing = 3.3;
+    // Zone(name, left, top, right, bottom)
+
     zoneList.push(new Zone('Center', stage.leftPlatformRight, stage.topPlatformBottom, stage.rightPlatformLeft, stage.y_offset));
-    zoneList.push(new Zone('L Corner', stage.leftPlatformLeft - 10, stage.leftPlatformBottom, stage.leftPlatformRight - 15, stage.y_offset - 3.3));
-    zoneList.push(new Zone('R Corner', stage.rightPlatformLeft + 15, stage.rightPlatformBottom, stage.rightPlatformRight + 10 , stage.y_offset - 3.3));
-    zoneList.push(new Zone('L Ledge', stage.left_edge - 15, stage.y_offset, stage.left_edge, stage.y_offset - 30));
-    zoneList.push(new Zone('R Ledge', stage.right_edge, stage.y_offset, stage.right_edge + 15, stage.y_offset - 30));
+
+    zoneList.push(new Zone('L Corner', stage.leftPlatformLeft - (Math.abs(stage.leftPlatformLeft - stage.left_edge)),
+                                    stage.leftPlatformBottom,
+                                    stage.leftPlatformRight - (Math.floor(Math.abs(stage.leftPlatformRight - stage.leftPlatformLeft)/2)),
+                                    stage.y_offset - lmaodudwtfareyoudoing));
+    
+    
+    zoneList.push(new Zone('R Corner', stage.rightPlatformLeft + (Math.floor(Math.abs(stage.rightPlatformLeft - stage.rightPlatformRight)/2)),
+                                    stage.rightPlatformBottom,
+                                    stage.rightPlatformRight + (Math.abs(stage.rightPlatformRight - stage.right_edge)),
+                                    stage.y_offset - lmaodudwtfareyoudoing));
+    
+    zoneList.push(new Zone('L Ledge', stage.left_edge - edgeZoneWidth, stage.y_offset, stage.left_edge, stage.y_offset - edgeZoneHeight));
+    zoneList.push(new Zone('R Ledge', stage.right_edge, stage.y_offset, stage.right_edge + edgeZoneWidth, stage.y_offset - edgeZoneHeight));
+    
+    zoneList.push(new Zone('L Plat', stage.leftPlatformLeft,
+                                    stage.topPlatformBottom + stage.y_offset,
+                                    stage.leftPlatformRight,
+                                    stage.leftPlatformBottom + stage.y_offset - lmaodudwtfareyoudoing));
+                                    
+    zoneList.push(new Zone('R Plat', stage.rightPlatformLeft,
+                                    stage.topPlatformBottom + stage.y_offset,
+                                    stage.rightPlatformRight,
+                                    stage.rightPlatformBottom + stage.y_offset - lmaodudwtfareyoudoing));
+
+                                    
+    zoneList.push(new Zone('T Plat', stage.topPlatformLeft,
+                                    stage.topPlatformBottom + (stage.topPlatformBottom - stage.leftPlatformBottom),
+                                    stage.topPlatformRight,
+                                    stage.topPlatformBottom + stage.y_offset - lmaodudwtfareyoudoing));
+
+    // Read Zone. idk lol give me a better name
+    zoneList.push(new Zone('L RZ', stage.leftPlatformRight - (Math.floor(Math.abs(stage.leftPlatformRight - stage.leftPlatformLeft)/2)),
+                                    stage.leftPlatformBottom,
+                                    stage.leftPlatformRight,
+                                    stage.y_offset - lmaodudwtfareyoudoing));
+
+    zoneList.push(new Zone('R RZ', stage.rightPlatformLeft,
+                                    stage.leftPlatformBottom,
+                                    stage.rightPlatformLeft + (Math.floor(Math.abs(stage.rightPlatformLeft - stage.rightPlatformRight)/2)),
+                                    stage.y_offset - lmaodudwtfareyoudoing));
+
+    // mango said it
+    zoneList.push(new Zone('L HBox', stage.leftPlatformLeft - Math.abs(stage.leftPlatformLeft - stage.leftPlatformRight),
+                                    stage.topPlatformBottom + stage.y_offset,
+                                    stage.leftPlatformLeft,
+                                    stage.leftPlatformBottom + stage.y_offset - lmaodudwtfareyoudoing));
+
+    
+    zoneList.push(new Zone('R HBox', stage.rightPlatformRight,
+                                    stage.topPlatformBottom + stage.y_offset,
+                                    stage.rightPlatformRight + Math.abs(stage.rightPlatformRight - stage.rightPlatformLeft),
+                                    stage.leftPlatformBottom + stage.y_offset - lmaodudwtfareyoudoing));
+                                    
+
     
 }
 
@@ -121,10 +179,10 @@ function generateInflectionPoints(optionStr){
     let grabs = [213, 226];
     let shield = [179, 180, 181, 182];
     let rolls = [233, 234];
+    // catching double jump
     
     let lookingFor = [];
     let options = optionStr.split(' ');
-    console.log(options);
     if(options.includes('knockdowns'))
         lookingFor = lookingFor.concat(knockdowns);
     if(options.includes('techs'))
@@ -136,7 +194,6 @@ function generateInflectionPoints(optionStr){
     if(options.includes('rolls'))
         lookingFor = lookingFor.concat(rolls);
 
-    console.log(lookingFor);
     playerList.forEach(p =>{
         // console.log(GAME_FRAMES.players[perspective]);
         for(let i=0; i < lastFrame; i++){
@@ -510,7 +567,11 @@ function drawInflectionPoints(){
             case 'Successful grab':
                 inflectionColor = '#00ff00';
                 break;
-            case 'counter-attack':
+            case 'Got grabbed':
+                inflectionColor = '#ff0000';
+                break;
+            case 'roll forward':
+            case 'roll backward':
                 inflectionColor = '#fff000';
                 break;
             default:
