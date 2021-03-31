@@ -83,8 +83,12 @@ function mainLoop(){
     // console.log(perspective.getRubberBandStress()); 
     
     zonesOccupied();
-    generateOptions();
-    determinePhase();
+
+    if(!isPaused){
+        generateOptions();
+        determinePhase();
+        determineState();
+    }
     drawGameScreen();
     animateModel();
     displayMediaButtons();
@@ -95,25 +99,12 @@ function mainLoop(){
 
 let tempFrame = 0;
 function generateOptions(){
-    if(!isPaused)
-        return;
+
     if(tempFrame == currentFrame)
         return;
     tempFrame = currentFrame;
 
-
-    playerList.forEach( p => {
-        // if(p.index == 0)
-        //     p.zones.forEach(z =>{ p1zone = z.name; });
-        // else
-        //     p.zones.forEach(z =>{ p2zone = z.name; });
-            
-        if(perspective.index == p.index){
-            p.zones.forEach(z =>{ console.log(z.name); });
-            console.log(`${p.name} rubber band: ${p.distanceFromCenter.toFixed(2)}`);
-
-        }
-    });
+    perspective.zones.forEach(z =>{ console.log(z.name); });
 
     // what is an option a function of?
     // option(perspective_position, opponent_position, history, percetns, etc...)
@@ -123,27 +114,40 @@ function generateOptions(){
 }
 
 function determinePhase(){
-    if(isPaused)
-        return;
-
-    
+        
     if (perspective.distanceFromCenter < notPerspective.distanceFromCenter){
         perspective.phase = 'Advantageous Neutral';
         notPerspective.phase = 'Disadvantageous Neutral';
     }
-    else{
+    if(perspective.distanceFromCenter > notPerspective.distanceFromCenter){
         perspective.phase = 'Disadvantageous Neutral';
         notPerspective.phase = 'Advantageous Neutral';
     }
 
+    if(perspective.actionStateName.toLowerCase().includes('damage')){
+        perspective.phase = 'Knockback';
+        notPerspective.phase = 'Opening';
+    }
+    if(notPerspective.actionStateName.toLowerCase().includes('damage')){
+        perspective.phase = 'Opening';
+        notPerspective.phase = 'Knockback';
+    }
+    
 
-    playerList.forEach(p =>{
-            
-        if(Math.abs(canvasToMeleeY(p.positionY)) < 0  || Math.abs(canvasToMeleeX(p.positionX)) > (stage.right_edge + 3))
-            p.phase = 'Recovery';
-            
-            
-    });
+
+
+}
+function determineState(){
+
+    if(canvasToMeleeY(perspective.positionY) < 0  || Math.abs(canvasToMeleeX(perspective.positionX)) > stage.right_edge){
+        perspective.state = 'Recovery';
+        notPerspective.state = 'Edge Guard';
+    }
+    if(canvasToMeleeY(notPerspective.positionY) < 0  || Math.abs(canvasToMeleeX(notPerspective.positionX)) > stage.right_edge){
+        perspective.state = 'Edge Guard';
+        notPerspective.state = 'Recovery';
+    }
+
 }
 
 function setPerspective(playerIndex){
