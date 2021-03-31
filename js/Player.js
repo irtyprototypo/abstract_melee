@@ -26,6 +26,8 @@ class Player{
         this.rubberBandVisible = true;
         this.diVisible = false;
         this.bodySize;         // radius
+        this.distanceFromCenter = 40;
+        this.phase = 'True Neutral';
         
     }
 
@@ -55,7 +57,9 @@ class Player{
 
         //display action state text
         ctx.font = '20px Arial';
-        ctx.fillText(this.actionStateName, this.positionX - ctx.measureText(this.actionStateName).width/2, this.positionY - 70);
+        // ctx.fillText(this.actionStateName, this.positionX - ctx.measureText(this.actionStateName).width/2, this.positionY - 70);
+        ctx.fillText(canvasToMeleeY(this.positionY).toFixed(2), this.positionX - ctx.measureText(this.actionStateName).width/2, this.positionY - 70);
+        ctx.fillText(this.phase, this.positionX - ctx.measureText(this.actionStateName).width/2, this.positionY - 100);
         ctx.stroke();
         ctx.closePath();
 
@@ -64,13 +68,13 @@ class Player{
 
     drawRubberBand(){
 
-        let distanceFromCenter = Math.sqrt(Math.floor(canvasToMeleeX(this.positionX) ** 2 + canvasToMeleeY(this.positionY) ** 2));
-        if(distanceFromCenter > 160)
+        this.distanceFromCenter = Math.sqrt(Math.floor(canvasToMeleeX(this.positionX) ** 2 + canvasToMeleeY(this.positionY) ** 2));
+        if(this.distanceFromCenter > 160)
             return;
 
         ctx.beginPath();
-        let stressFactor = distanceFromCenter * 2;
-        ctx.setLineDash([distanceFromCenter/3, distanceFromCenter/3]);/*dashes are 5px and spaces are 3px*/
+        let stressFactor = this.distanceFromCenter * 2;
+        ctx.setLineDash([this.distanceFromCenter/3, this.distanceFromCenter/3]);/*dashes are 5px and spaces are 3px*/
         // ctx.setLineDash([5, 15]);/*dashes are 5px and spaces are 3px*/
         ctx.strokeStyle = `rgb(${Math.floor(0 + stressFactor)}, ${Math.floor(255 - stressFactor)}, 0)`;
         ctx.lineWidth = 3;

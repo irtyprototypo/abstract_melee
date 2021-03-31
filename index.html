@@ -5,7 +5,8 @@
         <link rel="icon" href="./img/icon.png">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
         <link rel="stylesheet" href="index.css">
-
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.6.0/gsap.min.js"></script>
         <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
         <script defer type="text/javascript" src="js/Stage.js"></script>
         <script defer type="text/javascript" src="js/Zone.js"></script>
@@ -13,13 +14,13 @@
         <script defer type="text/javascript" src="js/inflectionPoint.js"></script>
         <script defer type="text/javascript" src="js/index.js"></script>
         <script defer type="text/javascript" src="js/game_data.json"></script>
-        <script defer type="text/javascript" src="replays/test2.json"></script>
+        <script defer type="text/javascript" src="replays/dl.json"></script>
     </head>
     <body onload="init()">
         <div class="main-container">
-            <div class=" container col-sm-10">
+            <div class="col-sm-8">
                 <div class="row">
-                    <div id="canvas-container" class="container">
+                    <div id="canvas-container" class="">
                         <canvas id="game-canvas" class="container col-sm-12"></canvas>
                     </div>
                 </div>
@@ -69,7 +70,13 @@
                     </div>
                 </div>
             </div>
-            <div class="container col-sm-4"></div>
+            <div class="col-sm-4">
+                <div class="row">
+                    <div id="model-container" class="">
+                        <svg id="model-svg"> </svg>
+                    </div>
+                </div>
+            </div>
         </div>
     </body>
 </html>

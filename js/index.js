@@ -1,9 +1,11 @@
 const WINDOW_SCALER = .8;
 const CANVAS_WIDTH = 1208 * WINDOW_SCALER;
 const CANVAS_HEIGHT = 680 * WINDOW_SCALER;
+const svgns = "http://www.w3.org/2000/svg";
+const modelSVG = document.querySelector("#model-svg");
 
 let GAME_STATS, GAME_FRAMES, GAME_METADATA, GAME_SETTINGS, GAME_DATA, CHARACTERS;
-let ctx, lastFrame, stage, perspective;
+let ctx, lastFrame, stage, perspective, notPerspective, phase;
 let currentFrame = 0;
 let playerList = [];
 let zoneList = [];
@@ -14,8 +16,12 @@ let zonesVisible = 1;
 let bandsVisible = 1;
 let gameOver = false;
 
+
 /**
  * to do
+ *  - maps states to model
+ *      - https://visjs.github.io/vis-network/examples/
+ *      - cytoscape.js
  *  - options engine
  *  - more zones!
  *  - threat zones
@@ -56,6 +62,8 @@ function init(){
     createZones(stage.name);
     // findInflectionPoints();
     generateInflectionPoints('grabs rolls');
+    drawModel();
+
 
 
     requestAnimationFrame(mainLoop);
@@ -75,22 +83,67 @@ function mainLoop(){
     // console.log(perspective.getRubberBandStress()); 
     
     zonesOccupied();
+    generateOptions();
+    determinePhase();
     drawGameScreen();
+    animateModel();
     displayMediaButtons();
     gameOverCheck();
 
     setTimeout(_=> { requestAnimationFrame(mainLoop); }, frameRate);
 }
 
-
+let tempFrame = 0;
 function generateOptions(){
     if(!isPaused)
         return;
+    if(tempFrame == currentFrame)
+        return;
+    tempFrame = currentFrame;
 
-    // perspective.zones.forEach(zone =>{
-    //     console.log(zone.name);
-    // });
 
+    playerList.forEach( p => {
+        // if(p.index == 0)
+        //     p.zones.forEach(z =>{ p1zone = z.name; });
+        // else
+        //     p.zones.forEach(z =>{ p2zone = z.name; });
+            
+        if(perspective.index == p.index){
+            p.zones.forEach(z =>{ console.log(z.name); });
+            console.log(`${p.name} rubber band: ${p.distanceFromCenter.toFixed(2)}`);
+
+        }
+    });
+
+    // what is an option a function of?
+    // option(perspective_position, opponent_position, history, percetns, etc...)
+
+
+
+}
+
+function determinePhase(){
+    if(isPaused)
+        return;
+
+    
+    if (perspective.distanceFromCenter < notPerspective.distanceFromCenter){
+        perspective.phase = 'Advantageous Neutral';
+        notPerspective.phase = 'Disadvantageous Neutral';
+    }
+    else{
+        perspective.phase = 'Disadvantageous Neutral';
+        notPerspective.phase = 'Advantageous Neutral';
+    }
+
+
+    playerList.forEach(p =>{
+            
+        if(Math.abs(canvasToMeleeY(p.positionY)) < 0  || Math.abs(canvasToMeleeX(p.positionX)) > (stage.right_edge + 3))
+            p.phase = 'Recovery';
+            
+            
+    });
 }
 
 function setPerspective(playerIndex){
@@ -100,6 +153,7 @@ function setPerspective(playerIndex){
             p.activePerspective = true;
             document.getElementById(`p${p.port}-text-container`).style.border = '2px solid #00ff00';
         } else{
+            notPerspective = p;
             p.activePerspective = false;
             document.getElementById(`p${p.port}-text-container`).style.border = 'none';
         }
@@ -112,63 +166,81 @@ function createZones(name){
     let edgeZoneHeight = 30;
     let edgeZoneWidth = 15;
     let lmaodudwtfareyoudoing = 3.3;
+    let eyeballedStageWidth = 170;
     // Zone(name, left, top, right, bottom)
 
+
     zoneList.push(new Zone('Center', stage.leftPlatformRight, stage.topPlatformBottom, stage.rightPlatformLeft, stage.y_offset));
-
-    zoneList.push(new Zone('L Corner', stage.leftPlatformLeft - (Math.abs(stage.leftPlatformLeft - stage.left_edge)),
-                                    stage.leftPlatformBottom,
-                                    stage.leftPlatformRight - (Math.floor(Math.abs(stage.leftPlatformRight - stage.leftPlatformLeft)/2)),
-                                    stage.y_offset - lmaodudwtfareyoudoing));
     
-    
-    zoneList.push(new Zone('R Corner', stage.rightPlatformLeft + (Math.floor(Math.abs(stage.rightPlatformLeft - stage.rightPlatformRight)/2)),
-                                    stage.rightPlatformBottom,
-                                    stage.rightPlatformRight + (Math.abs(stage.rightPlatformRight - stage.right_edge)),
-                                    stage.y_offset - lmaodudwtfareyoudoing));
-    
-    zoneList.push(new Zone('L Ledge', stage.left_edge - edgeZoneWidth, stage.y_offset, stage.left_edge, stage.y_offset - edgeZoneHeight));
-    zoneList.push(new Zone('R Ledge', stage.right_edge, stage.y_offset, stage.right_edge + edgeZoneWidth, stage.y_offset - edgeZoneHeight));
-    
-    zoneList.push(new Zone('L Plat', stage.leftPlatformLeft,
-                                    stage.topPlatformBottom + stage.y_offset,
-                                    stage.leftPlatformRight,
-                                    stage.leftPlatformBottom + stage.y_offset - lmaodudwtfareyoudoing));
-                                    
-    zoneList.push(new Zone('R Plat', stage.rightPlatformLeft,
-                                    stage.topPlatformBottom + stage.y_offset,
-                                    stage.rightPlatformRight,
-                                    stage.rightPlatformBottom + stage.y_offset - lmaodudwtfareyoudoing));
-
-                                    
     zoneList.push(new Zone('T Plat', stage.topPlatformLeft,
                                     stage.topPlatformBottom + (stage.topPlatformBottom - stage.leftPlatformBottom),
                                     stage.topPlatformRight,
                                     stage.topPlatformBottom + stage.y_offset - lmaodudwtfareyoudoing));
 
-    // Read Zone. idk lol give me a better name
-    zoneList.push(new Zone('L RZ', stage.leftPlatformRight - (Math.floor(Math.abs(stage.leftPlatformRight - stage.leftPlatformLeft)/2)),
-                                    stage.leftPlatformBottom,
-                                    stage.leftPlatformRight,
-                                    stage.y_offset - lmaodudwtfareyoudoing));
+    // --- right ----
+        zoneList.push(new Zone('Corner', stage.rightPlatformLeft + (Math.floor(Math.abs(stage.rightPlatformLeft - stage.rightPlatformRight)/2)),
+                                        stage.rightPlatformBottom,
+                                        stage.rightPlatformRight + (Math.abs(stage.rightPlatformRight - stage.right_edge)),
+                                        stage.y_offset - lmaodudwtfareyoudoing));
+        
+        zoneList.push(new Zone('Ledge', stage.right_edge, stage.y_offset, stage.right_edge + edgeZoneWidth, stage.y_offset - edgeZoneHeight));
+        
+        zoneList.push(new Zone('Plat', stage.rightPlatformLeft,
+                                        stage.topPlatformBottom + stage.y_offset,
+                                        stage.rightPlatformRight,
+                                        stage.rightPlatformBottom + stage.y_offset - lmaodudwtfareyoudoing));
 
-    zoneList.push(new Zone('R RZ', stage.rightPlatformLeft,
-                                    stage.leftPlatformBottom,
-                                    stage.rightPlatformLeft + (Math.floor(Math.abs(stage.rightPlatformLeft - stage.rightPlatformRight)/2)),
-                                    stage.y_offset - lmaodudwtfareyoudoing));
+        // Read Zone. idk lol give me a better name
+        zoneList.push(new Zone('RZ', stage.rightPlatformLeft,
+                                        stage.leftPlatformBottom,
+                                        stage.rightPlatformLeft + (Math.floor(Math.abs(stage.rightPlatformLeft - stage.rightPlatformRight)/2)),
+                                        stage.y_offset - lmaodudwtfareyoudoing));
+        // mango said it
+        zoneList.push(new Zone('HBox', stage.rightPlatformRight,
+                                        stage.topPlatformBottom + stage.y_offset,
+                                        stage.rightPlatformRight + Math.abs(stage.rightPlatformRight - stage.rightPlatformLeft),
+                                        stage.leftPlatformBottom + stage.y_offset - lmaodudwtfareyoudoing));
+        
+        zoneList.push(new Zone('Below', stage.right_edge,
+                                        stage.floor_offset,
+                                        eyeballedStageWidth,
+                                        stage.floor_offset));
 
-    // mango said it
-    zoneList.push(new Zone('L HBox', stage.leftPlatformLeft - Math.abs(stage.leftPlatformLeft - stage.leftPlatformRight),
-                                    stage.topPlatformBottom + stage.y_offset,
-                                    stage.leftPlatformLeft,
-                                    stage.leftPlatformBottom + stage.y_offset - lmaodudwtfareyoudoing));
+                                    
 
     
-    zoneList.push(new Zone('R HBox', stage.rightPlatformRight,
-                                    stage.topPlatformBottom + stage.y_offset,
-                                    stage.rightPlatformRight + Math.abs(stage.rightPlatformRight - stage.rightPlatformLeft),
-                                    stage.leftPlatformBottom + stage.y_offset - lmaodudwtfareyoudoing));
+    // --- left ---
+        zoneList.push(new Zone('Corner', stage.leftPlatformLeft - (Math.abs(stage.leftPlatformLeft - stage.left_edge)),
+                                        stage.leftPlatformBottom,
+                                        stage.leftPlatformRight - (Math.floor(Math.abs(stage.leftPlatformRight - stage.leftPlatformLeft)/2)),
+                                        stage.y_offset - lmaodudwtfareyoudoing));
+        
+        zoneList.push(new Zone('Ledge', stage.left_edge - edgeZoneWidth, stage.y_offset, stage.left_edge, stage.y_offset - edgeZoneHeight));
+        
+        zoneList.push(new Zone('Plat', stage.leftPlatformLeft,
+                                        stage.topPlatformBottom + stage.y_offset,
+                                        stage.leftPlatformRight,
+                                        stage.leftPlatformBottom + stage.y_offset - lmaodudwtfareyoudoing));
+                                        
+        // Read Zone. idk lol give me a better name
+        zoneList.push(new Zone('RZ', stage.leftPlatformRight - (Math.floor(Math.abs(stage.leftPlatformRight - stage.leftPlatformLeft)/2)),
+                                        stage.leftPlatformBottom,
+                                        stage.leftPlatformRight,
+                                        stage.y_offset - lmaodudwtfareyoudoing));
+
+        // mango said it
+        zoneList.push(new Zone('HBox', stage.leftPlatformLeft - Math.abs(stage.leftPlatformLeft - stage.leftPlatformRight),
+                                        stage.topPlatformBottom + stage.y_offset,
+                                        stage.leftPlatformLeft,
+                                        stage.leftPlatformBottom + stage.y_offset - lmaodudwtfareyoudoing));
+                                        
+        zoneList.push(new Zone('Below', -eyeballedStageWidth,
+                                        stage.floor_offset,
+                                        stage.left_edge,
+                                        stage.floor_offset));
                                     
+    
+
 
     
 }
@@ -211,7 +283,6 @@ function generateInflectionPoints(optionStr){
     });
 
    console.log(`Inflection points loaded.`);
-   generateOptions();
 
 }
 
@@ -230,6 +301,60 @@ function displayMediaButtons(){
         document.getElementById('previous-inflection-point-btn').disabled = true;
         document.getElementById('previous-frame-btn').disabled = true;
     }
+}
+
+
+function animateModel(){
+
+
+}
+function drawModel(){
+    let click = false;
+    let circX = 30;
+
+    let svgWidth = 400;
+    let svgHeight = 400;
+    gsap.set(modelSVG, {
+        attr: {
+        width: svgWidth,
+        height: svgHeight,
+        viewBox: "0 0 " + svgWidth + " " + svgHeight
+        }
+    });
+
+    let backgroundRect = document.createElementNS(svgns, "rect");
+    gsap.set(backgroundRect, {
+        attr: {
+            x: 0,
+            y: 0,
+            width: svgWidth,
+            height: svgHeight
+    }});
+    modelSVG.appendChild(backgroundRect);
+
+    let circ1 = document.createElementNS(svgns, "circle");
+    gsap.set(circ1, {
+        attr: {
+            cy: 10,
+            cx: circX,
+            r: 20,
+            fill: '#fff'
+    }});
+
+    circ1.addEventListener("click",toggleColor);
+    modelSVG.appendChild(circ1);
+
+
+    function toggleColor(){
+        if(click === true)
+            circ1.setAttribute("fill", "#5cceee");
+        else
+            circ1.setAttribute("fill", "red");
+
+        click = (click === true) ? false : true;
+    }
+
+
 }
 
 function drawGameScreen(){
@@ -256,6 +381,7 @@ function drawGameScreen(){
 
     drawProjectiles();
 }
+
 
 function drawProjectiles(){
     if(!GAME_FRAMES[currentFrame].items)
@@ -299,6 +425,9 @@ function zonesOccupied(){
         zoneList.forEach((zone, y) =>{
             if(zone.isInside(player.positionX, player.positionY))
                 player.zones.add(zone);
+            if(zone.name == 'Below')
+                if(zone.isBelow(player.positionX, player.positionY))
+                    player.zones.add(zone);
         });
     });
 }

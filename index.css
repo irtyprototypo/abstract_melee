@@ -13,6 +13,13 @@ body{
     width: 100%;
 
 }
+
+#model-container{
+    border: 2px red solid;
+}
+#model-svg{
+    width: 100%;
+}
 #upload-control-container,
 #media-controls-container,
 #graphics-controls-container{

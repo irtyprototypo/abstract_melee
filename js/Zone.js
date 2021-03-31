@@ -44,4 +44,10 @@ class Zone{
                 return true;
     }
 
+    isBelow(x, y){
+        if(canvasToMeleeX(x) <= this.right && canvasToMeleeX(x) >= this.left) 
+            if(canvasToMeleeY(y) <= this.top - stage.y_offset)
+                return true;
+    }
+
 }
