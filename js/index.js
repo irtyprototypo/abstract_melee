@@ -20,17 +20,24 @@ let gameOver = false;
 /**
  * to do
  *  - maps states to model
- *      - https://visjs.github.io/vis-network/examples/
- *      - cytoscape.js
+ *      - logic
+ *          - phases
+ *          - states
+ *      - graphics
+ *          - https://visjs.github.io/vis-network/examples/
+ *          - cytoscape.js
  *  - options engine
  *  - more zones!
  *  - threat zones
  *      - keep the string taught
  *  - draw DI
  *  - in game HUD
- *  - better UI
+ *  - better UX
  *      - say it again for the ones with glasses
+ *      - animations go without saying lmao
+ *      - keyboard controls
  *  - lexicon
+ *  - action state special move quirk
  * 
  */
 
@@ -104,7 +111,7 @@ function generateOptions(){
         return;
     tempFrame = currentFrame;
 
-    perspective.zones.forEach(z =>{ console.log(z.name); });
+    // perspective.zones.forEach(z =>{ console.log(z.name); });
 
     // what is an option a function of?
     // option(perspective_position, opponent_position, history, percetns, etc...)
@@ -114,7 +121,9 @@ function generateOptions(){
 }
 
 function determinePhase(){
-        
+    
+    
+    // temp meter of rubberband distance
     if (perspective.distanceFromCenter < notPerspective.distanceFromCenter){
         perspective.phase = 'Advantageous Neutral';
         notPerspective.phase = 'Disadvantageous Neutral';
@@ -124,20 +133,24 @@ function determinePhase(){
         notPerspective.phase = 'Advantageous Neutral';
     }
 
-    if(perspective.actionStateName.toLowerCase().includes('damage')){
+    if(perspective.actionStateName.toLowerCase().includes('damage', 'grab')){
         perspective.phase = 'Knockback';
         notPerspective.phase = 'Opening';
     }
-    if(notPerspective.actionStateName.toLowerCase().includes('damage')){
+    if(notPerspective.actionStateName.toLowerCase().includes('damage', 'grab')){
         perspective.phase = 'Opening';
         notPerspective.phase = 'Knockback';
     }
-    
+    //
+    // true neutral
+    // kill / death
 
 
 
 }
 function determineState(){
+    perspective.state = 'default';
+    notPerspective.state = 'default';
 
     if(canvasToMeleeY(perspective.positionY) < 0  || Math.abs(canvasToMeleeX(perspective.positionX)) > stage.right_edge){
         perspective.state = 'Recovery';
@@ -148,7 +161,32 @@ function determineState(){
         notPerspective.state = 'Recovery';
     }
 
+    if(perspective.actionStateName.toLowerCase().includes('downbound')){
+        perspective.state = 'Knock Down';
+        notPerspective.state = 'Tech Chase';
+    }
+    if(notPerspective.actionStateName.toLowerCase().includes('downbound')){
+        perspective.state = 'Tech Chase';
+        notPerspective.state = 'Knock Down';
+    }
+
+    
+    if(perspective.actionStateName.toLowerCase().includes('damage')){
+        perspective.state = 'DI';
+        notPerspective.state = 'Combo';
+    }
+    if(notPerspective.actionStateName.toLowerCase().includes('damage')){
+        perspective.state = 'Combo';
+        notPerspective.state = 'DI';
+    }
+
+    // sharking
+    // stagger
+    // SDI
+
+
 }
+
 
 function setPerspective(playerIndex){
     playerList.forEach(p =>{
@@ -243,10 +281,6 @@ function createZones(name){
                                         stage.left_edge,
                                         stage.floor_offset));
                                     
-    
-
-
-    
 }
 
 function generateInflectionPoints(optionStr){
@@ -313,51 +347,36 @@ function animateModel(){
 
 }
 function drawModel(){
-    let click = false;
-    let circX = 30;
 
-    let svgWidth = 400;
-    let svgHeight = 400;
-    gsap.set(modelSVG, {
-        attr: {
-        width: svgWidth,
-        height: svgHeight,
-        viewBox: "0 0 " + svgWidth + " " + svgHeight
-        }
+    $("ellipse").on('click', e =>{
+        // console.log($("#state_hold_space_g").siblings());
+        // $("#state_hold_space_g").click( _=>{
+        // this.setAttribute("fill", "lime");
+        let id = e.target.parentElement.id;
+        // $(`${id}`).attr('fill', 'lime');
+
+
+        e.target.attributes.fill.value = (e.target.attributes.fill.value == '#fff' ) ? '#622' : '#fff';
+        // $(e.target.parentElement).siblings();
+        // for(let i=0; i < $(e.target.parentElement).siblings().length; i++){
+
+            
+        //     // console.log($(e.target.parentElement).siblings());
+        //     let type = $(e.target.parentElement).siblings()[i].id;
+        //     if(type.includes('state')){
+        //         $(e.target.parentElement).siblings()[i].children[0].fill = '#fff';
+
+        //     }
+        // }
+        
+        // $(e.target.parentElement).siblings().children()[0].attr('fill', '#fff');
+
+        // console.log($(e.target.parentElement).siblings());
+        // keeds.forEach( e =>{
+            // console.log(lll);
+        // });
+        // console.log($(e.target.parentElement).siblings("ellipse"));
     });
-
-    let backgroundRect = document.createElementNS(svgns, "rect");
-    gsap.set(backgroundRect, {
-        attr: {
-            x: 0,
-            y: 0,
-            width: svgWidth,
-            height: svgHeight
-    }});
-    modelSVG.appendChild(backgroundRect);
-
-    let circ1 = document.createElementNS(svgns, "circle");
-    gsap.set(circ1, {
-        attr: {
-            cy: 10,
-            cx: circX,
-            r: 20,
-            fill: '#fff'
-    }});
-
-    circ1.addEventListener("click",toggleColor);
-    modelSVG.appendChild(circ1);
-
-
-    function toggleColor(){
-        if(click === true)
-            circ1.setAttribute("fill", "#5cceee");
-        else
-            circ1.setAttribute("fill", "red");
-
-        click = (click === true) ? false : true;
-    }
-
 
 }
 

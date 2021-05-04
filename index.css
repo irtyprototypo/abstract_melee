@@ -15,10 +15,18 @@ body{
 }
 
 #model-container{
-    border: 2px red solid;
 }
+
 #model-svg{
-    width: 100%;
+    /* border: 2px red solid; */
+    max-width: 100%;
+}
+#img1{
+
+}
+
+svg div {
+    user-select: none;
 }
 #upload-control-container,
 #media-controls-container,
