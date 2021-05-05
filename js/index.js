@@ -93,9 +93,10 @@ function mainLoop(){
 
     if(!isPaused){
         generateOptions();
-        determinePhase();
-        determineState();
     }
+    determinePhase();
+    determineState();
+    
     drawGameScreen();
     animateModel();
     displayMediaButtons();
@@ -121,64 +122,140 @@ function generateOptions(){
 }
 
 function determinePhase(){
-    
-    
+
+    $("#state_an_g, #state_dn_g, #state_opening_g, #state_knockback_g").children(0).attr('fill', '#fff');
+
     // temp meter of rubberband distance
     if (perspective.distanceFromCenter < notPerspective.distanceFromCenter){
         perspective.phase = 'Advantageous Neutral';
+        $("#state_an_g").children(0).attr('fill', `${perspective.portColor}`);
+        
         notPerspective.phase = 'Disadvantageous Neutral';
+        $("#state_dn_g").children(0).attr('fill', `${notPerspective.portColor}`);
     }
     if(perspective.distanceFromCenter > notPerspective.distanceFromCenter){
         perspective.phase = 'Disadvantageous Neutral';
+        $("#state_dn_g").children(0).attr('fill', `${perspective.portColor}`);
+        
         notPerspective.phase = 'Advantageous Neutral';
+        $("#state_an_g").children(0).attr('fill', `${notPerspective.portColor}`);
     }
 
+    
     if(perspective.actionStateName.toLowerCase().includes('damage', 'grab')){
         perspective.phase = 'Knockback';
+        // $("#state_knockback_g").children(0).attr('fill', `${perspective.portColor}`);
+                
         notPerspective.phase = 'Opening';
+        // $("#state_opening_g").children(0).attr('fill', `${notPerspective.portColor}`);
+        
+        $("#state_an_g, #state_dn_g").children(0).attr('fill', '#fff');
     }
     if(notPerspective.actionStateName.toLowerCase().includes('damage', 'grab')){
         perspective.phase = 'Opening';
+        // $("#state_opening_g").children(0).attr('fill', `${perspective.portColor}`);
+        
         notPerspective.phase = 'Knockback';
+        // $("#state_knockback_g").children(0).attr('fill', `${notPerspective.portColor}`);
+        
+        $("#state_an_g, #state_dn_g").children(0).attr('fill', '#fff');
     }
-    //
-    // true neutral
-    // kill / death
 
 
-
+    if(perspective.actionStateName.toLowerCase().includes('death')){
+        console.log('ded');
+        perspective.phase = 'Death';
+        $("#state_death_g").children(0).attr('fill', `${perspective.portColor}`);
+        
+        notPerspective.phase = 'Kill';
+        $("#state_kill_g").children(0).attr('fill', `${notPerspective.portColor}`);
+        
+        $("#state_an_g, #state_dn_g").children(0).attr('fill', '#fff');
+    }
+    if(notPerspective.actionStateName.toLowerCase().includes('death')){
+        perspective.phase = 'Kill';
+        console.log('ded');
+        $("#state_kill_g").children(0).attr('fill', `${perspective.portColor}`);
+        
+        notPerspective.phase = 'Death';
+        $("#state_death_g").children(0).attr('fill', `${notPerspective.portColor}`);
+        
+        $("#state_an_g, #state_dn_g").children(0).attr('fill', '#fff');
+    }
 }
+
+
 function determineState(){
     perspective.state = 'default';
     notPerspective.state = 'default';
 
+    // $("#state_edge_guard_g").siblings().attr('fill', '#fff');
+    
+    $(` #state_recovery_g,
+        #state_edge_guard_g,
+        #state_knock_down_g,
+        #state_tech_chase_g,
+        #state_di_g,
+        #state_combo_g`)
+    .children(0).attr('fill', '#fff');
+
+    // let past = $("#state_combo_g").children(0).attr('fill-opacity')
+    // $("#state_edge_guard_g").siblings().attr('fill', '#fff')
+    // console.log();
+    // if(!past || past <= 0)
+    //     past = 100;
+    // $("#state_combo_g").children(0).attr('fill-opacity', `${past - .5}`)
+
+
     if(canvasToMeleeY(perspective.positionY) < 0  || Math.abs(canvasToMeleeX(perspective.positionX)) > stage.right_edge){
         perspective.state = 'Recovery';
+        $("#state_recovery_g").children(0).attr('fill', `${perspective.portColor}`);
+
         notPerspective.state = 'Edge Guard';
+        $("#state_edge_guard_g").children(0).attr('fill', `${notPerspective.portColor}`);
     }
     if(canvasToMeleeY(notPerspective.positionY) < 0  || Math.abs(canvasToMeleeX(notPerspective.positionX)) > stage.right_edge){
         perspective.state = 'Edge Guard';
+        $("#state_edge_guard_g").children(0).attr('fill', `${perspective.portColor}`);
+
         notPerspective.state = 'Recovery';
+        $("#state_recovery_g").children(0).attr('fill', `${notPerspective.portColor}`);
     }
 
-    if(perspective.actionStateName.toLowerCase().includes('downbound')){
+    if(perspective.actionStateName.toLowerCase().includes('tech')){
+        console.log('teching...............');
         perspective.state = 'Knock Down';
+        $("#state_knock_down_g").children(0).attr('fill', `${perspective.portColor}`);
+        
         notPerspective.state = 'Tech Chase';
+        $("#state_tech_chase_g").children(0).attr('fill', `${notPerspective.portColor}`);
     }
-    if(notPerspective.actionStateName.toLowerCase().includes('downbound')){
+    if(notPerspective.actionStateName.toLowerCase().includes('tech')){
         perspective.state = 'Tech Chase';
+        $("#state_tech_chase_g").children(0).attr('fill', `${perspective.portColor}`);
+        
         notPerspective.state = 'Knock Down';
+        $("#state_knock_down_g").children(0).attr('fill', `${notPerspective.portColor}`);
     }
 
     
     if(perspective.actionStateName.toLowerCase().includes('damage')){
         perspective.state = 'DI';
+        $("#state_di_g").children(0).attr('fill', `${perspective.portColor}`);
+
         notPerspective.state = 'Combo';
+        $("#state_combo_g").children(0).attr('fill', `${notPerspective.portColor}`);
+
     }
     if(notPerspective.actionStateName.toLowerCase().includes('damage')){
         perspective.state = 'Combo';
+        $("#state_combo_g").children(0).attr('fill', `${perspective.portColor}`);
+
         notPerspective.state = 'DI';
+        $("#state_di_g").children(0).attr('fill', `${notPerspective.portColor}`);
     }
+
+    
 
     // sharking
     // stagger
@@ -348,18 +425,18 @@ function animateModel(){
 }
 function drawModel(){
 
-    $("ellipse").on('click', e =>{
-        // console.log($("#state_hold_space_g").siblings());
-        // $("#state_hold_space_g").click( _=>{
-        // this.setAttribute("fill", "lime");
+
+    $("ellipse, rect").on('click', e =>{
         let id = e.target.parentElement.id;
-        // $(`${id}`).attr('fill', 'lime');
+        // console.log(e.target.parentElement.parentElement.id);
+        if(id.includes("phase"))
+            return;
 
-
-        e.target.attributes.fill.value = (e.target.attributes.fill.value == '#fff' ) ? '#622' : '#fff';
+        e.target.attributes.stroke.value = (e.target.attributes.stroke.value != '#bfff00' ) ? '#bfff00' : '#000';
+        e.target.attributes["stroke-width"] = (e.target.attributes["stroke-width"] != '3' ) ? '3' : '1';
         // $(e.target.parentElement).siblings();
         // for(let i=0; i < $(e.target.parentElement).siblings().length; i++){
-
+        // console.log(e.target.attributes["stroke-width"] );
             
         //     // console.log($(e.target.parentElement).siblings());
         //     let type = $(e.target.parentElement).siblings()[i].id;
@@ -373,7 +450,8 @@ function drawModel(){
 
         // console.log($(e.target.parentElement).siblings());
         // keeds.forEach( e =>{
-            // console.log(lll);
+            // console.log($("#state_hold_space_g").children(0).attr('stroke', `${perspective.portColor}`));
+            // $("#state_hold_space_g").children(0).attr('stroke', `${perspective.portColor}`);
         // });
         // console.log($(e.target.parentElement).siblings("ellipse"));
     });

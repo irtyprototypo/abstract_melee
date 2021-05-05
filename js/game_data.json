@@ -95,7 +95,7 @@ const game_data = {
             { "id": 1, "name": "DeadLeft", "description": "Standard leftward death" },
             { "id": 2, "name": "DeadRight", "description": "Standard rightward death" },
             { "id": 3, "name": "DeadUp", "description": "Upward death used in 1P \"Team Kirby\"" },
-            { "id": 4, "name": "DeadUpStar", "description": "Standard Star KO" },
+            { "id": 4, "name": "DeadUpStar", "description": "Standard Star KO death" },
             { "id": 5, "name": "DeadUpStarIce", "description": "Star KO while encased in ice (Freezie)" },
             { "id": 6, "name": "DeadUpFall", "description": "64-esque front fall" },
             { "id": 7, "name": "DeadUpFallHitCamera" },
