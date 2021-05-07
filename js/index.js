@@ -1,14 +1,13 @@
 const WINDOW_SCALER = .8;
 const CANVAS_WIDTH = 1208 * WINDOW_SCALER;
 const CANVAS_HEIGHT = 680 * WINDOW_SCALER;
-const svgns = "http://www.w3.org/2000/svg";
-const modelSVG = document.querySelector("#model-svg");
 
 let GAME_STATS, GAME_FRAMES, GAME_METADATA, GAME_SETTINGS, GAME_DATA, CHARACTERS;
 let ctx, lastFrame, stage, perspective, notPerspective, phase;
 let currentFrame = 0;
 let playerList = [];
 let zoneList = [];
+let desiredInflectionPoints = [];
 let isPaused = true;
 let trails = false;
 let debugView = false;
@@ -18,29 +17,28 @@ let gameOver = false;
 
 
 /**
- * to do
- *  - maps states to model
- *      - logic
- *          - phases
- *          - states
- *      - graphics
- *          - https://visjs.github.io/vis-network/examples/
- *          - cytoscape.js
- *  - options engine
- *  - more zones!
- *  - threat zones
- *      - keep the string taught
- *  - draw DI
- *  - in game HUD
- *  - better UX
- *      - say it again for the ones with glasses
- *      - animations go without saying lmao
- *      - keyboard controls
- *  - lexicon
- *  - action state special move quirk
- * 
- */
-
+ * todo
+ * - map action-states to model-states
+ *     - incomplete
+ *     - specify inflection point
+ *         - incomplete
+ * - options engine
+ *     - display tactic / manuever
+ * - more zones?
+ *     - air camping?
+ *     - edge cancel setups?
+ * - threat zones
+ *     - keep the roll string taught
+ * - draw DI
+ * - in game HUD
+ *     - needs timer
+ * - better UX
+ *     - say it again for the ones with glasses
+ *     - animations go without saying lmao
+ *     - keyboard controls
+ * - lexicon
+ * - action state special move quirk
+**/
 
 function init(){
     GAME_FRAMES = slp_replay.data.frames;
@@ -49,10 +47,10 @@ function init(){
     GAME_STATS = slp_replay.data.stats;
     GAME_DATA = game_data.data;
 
-    // console.log(GAME_FRAMES);
+    console.log(GAME_FRAMES[215]);
     // console.log(GAME_METADATA);
     // console.log(GAME_SETTINGS);
-    console.log(GAME_STATS);
+    // console.log(GAME_STATS);
     // console.log(GAME_DATA);
 
     ctx = createCanvas();
@@ -67,9 +65,8 @@ function init(){
     lastFrame = GAME_METADATA.lastFrame;
 
     createZones(stage.name);
-    // findInflectionPoints();
-    generateInflectionPoints('grabs rolls');
-    drawModel();
+    // generateInflectionPoints('grabs rolls');
+    specifyInflectionPoint();
 
 
 
@@ -80,50 +77,48 @@ function init(){
 function mainLoop(){
     // let frameRate = 16.67 * 2;
     let frameRate = 16.67;
-
-    if (!isPaused)
-        currentFrame++;
+    
+    if(!isPaused)  currentFrame++;
 
         
     updatePlayerPositions();
-    
     // console.log(perspective.getRubberBandStress()); 
-    
-    zonesOccupied();
 
-    if(!isPaused){
-        generateOptions();
+
+    zonesOccupied();
+    if(perspective.inflectionPoints.includes(currentFrame)){
+        document.getElementById('play-toggle-btn').innerHTML = '▶️';
+        isPaused = true;
     }
+    
+
     determinePhase();
     determineState();
     
     drawGameScreen();
-    animateModel();
     displayMediaButtons();
     gameOverCheck();
 
     setTimeout(_=> { requestAnimationFrame(mainLoop); }, frameRate);
 }
 
-let tempFrame = 0;
 function generateOptions(){
-
-    if(tempFrame == currentFrame)
-        return;
-    tempFrame = currentFrame;
-
-    // perspective.zones.forEach(z =>{ console.log(z.name); });
 
     // what is an option a function of?
     // option(perspective_position, opponent_position, history, percetns, etc...)
 
-
-
 }
+
 
 function determinePhase(){
 
-    $("#state_an_g, #state_dn_g, #state_opening_g, #state_knockback_g").children(0).attr('fill', '#fff');
+    $(` #state_an_g,
+        #state_dn_g,
+        #state_opening_g,
+        #state_knockback_g,
+        #state_kill_g,
+        #state_death_g
+        `).children(0).attr('fill', '#fff');
 
     // temp meter of rubberband distance
     if (perspective.distanceFromCenter < notPerspective.distanceFromCenter){
@@ -161,9 +156,7 @@ function determinePhase(){
         $("#state_an_g, #state_dn_g").children(0).attr('fill', '#fff');
     }
 
-
     if(perspective.actionStateName.toLowerCase().includes('death')){
-        console.log('ded');
         perspective.phase = 'Death';
         $("#state_death_g").children(0).attr('fill', `${perspective.portColor}`);
         
@@ -174,7 +167,6 @@ function determinePhase(){
     }
     if(notPerspective.actionStateName.toLowerCase().includes('death')){
         perspective.phase = 'Kill';
-        console.log('ded');
         $("#state_kill_g").children(0).attr('fill', `${perspective.portColor}`);
         
         notPerspective.phase = 'Death';
@@ -189,8 +181,6 @@ function determineState(){
     perspective.state = 'default';
     notPerspective.state = 'default';
 
-    // $("#state_edge_guard_g").siblings().attr('fill', '#fff');
-    
     $(` #state_recovery_g,
         #state_edge_guard_g,
         #state_knock_down_g,
@@ -198,13 +188,6 @@ function determineState(){
         #state_di_g,
         #state_combo_g`)
     .children(0).attr('fill', '#fff');
-
-    // let past = $("#state_combo_g").children(0).attr('fill-opacity')
-    // $("#state_edge_guard_g").siblings().attr('fill', '#fff')
-    // console.log();
-    // if(!past || past <= 0)
-    //     past = 100;
-    // $("#state_combo_g").children(0).attr('fill-opacity', `${past - .5}`)
 
 
     if(canvasToMeleeY(perspective.positionY) < 0  || Math.abs(canvasToMeleeX(perspective.positionX)) > stage.right_edge){
@@ -223,7 +206,6 @@ function determineState(){
     }
 
     if(perspective.actionStateName.toLowerCase().includes('tech')){
-        console.log('teching...............');
         perspective.state = 'Knock Down';
         $("#state_knock_down_g").children(0).attr('fill', `${perspective.portColor}`);
         
@@ -323,7 +305,8 @@ function createZones(name){
         zoneList.push(new Zone('Below', stage.right_edge,
                                         stage.floor_offset,
                                         eyeballedStageWidth,
-                                        stage.floor_offset));
+                                        -100));
+                                        // stage.floor_offset));
 
                                     
 
@@ -356,49 +339,43 @@ function createZones(name){
         zoneList.push(new Zone('Below', -eyeballedStageWidth,
                                         stage.floor_offset,
                                         stage.left_edge,
-                                        stage.floor_offset));
+                                        -100));
+                                        // stage.floor_offset));
                                     
 }
 
-function generateInflectionPoints(optionStr){
+function generateInflectionPoints(options){
+    let lookingFor = [];
     let knockdowns = [183, 191];
     let techOptions = [199, 200, 201, 202, 203, 204];
     let grabs = [213, 226];
     let shield = [179, 180, 181, 182];
     let rolls = [233, 234];
     // catching double jump
+    // the rest of the model states
     
-    let lookingFor = [];
-    let options = optionStr.split(' ');
-    if(options.includes('knockdowns'))
-        lookingFor = lookingFor.concat(knockdowns);
-    if(options.includes('techs'))
-        lookingFor = lookingFor.concat(techOptions);
-    if(options.includes('grabs'))
-        lookingFor = lookingFor.concat(grabs);
-    if(options.includes('shield'))
-        lookingFor = lookingFor.concat(shield);
-    if(options.includes('rolls'))
-        lookingFor = lookingFor.concat(rolls);
 
-    playerList.forEach(p =>{
-        // console.log(GAME_FRAMES.players[perspective]);
-        for(let i=0; i < lastFrame; i++){
-            let prevAStateId = GAME_FRAMES[i-1].players[p.index].pre.actionStateId;
-            // if(!prevAStateId)
-                // return;
-            let aStateId = GAME_FRAMES[i].players[p.index].pre.actionStateId;
-            let nextAStateId = GAME_FRAMES[i+1].players[p.index].pre.actionStateId;
-                
-            if (lookingFor.includes(aStateId) && !lookingFor.includes(prevAStateId) ){
-                p.inflectionPoints.push(new inflectionPoint(i, GAME_DATA.actioneStates[aStateId].description))
-            }
-        }
-        p.inflectionPointsReversed = p.inflectionPoints.slice().reverse();
-    });
+    if(options.includes('knockdown'))  lookingFor = lookingFor.concat(knockdowns);
+    if(options.includes('techchase'))  lookingFor = lookingFor.concat(techOptions);
+    if(options.includes('grab'))        lookingFor = lookingFor.concat(grabs);
+    if(options.includes('shield'))      lookingFor = lookingFor.concat(shield);
+    if(options.includes('roll'))        lookingFor = lookingFor.concat(rolls);
+    if(options.length == 0) lookingFor = [];
 
-   console.log(`Inflection points loaded.`);
-
+    for(let i=0; i < lastFrame; i++){
+        let prevAStateId = GAME_FRAMES[i-1].players[perspective.index].pre.actionStateId;
+        let aStateId = GAME_FRAMES[i].players[perspective.index].pre.actionStateId;
+        // let nextAStateId = GAME_FRAMES[i+1].players[perspective.index].pre.actionStateId;
+            
+        if (lookingFor.includes(aStateId) && !lookingFor.includes(prevAStateId) )
+            perspective.inflectionPoints.push(i)
+        
+    }
+    if(lookingFor.length == 0)  perspective.inflectionPoints = [];
+    
+    perspective.inflectionPointsReversed = perspective.inflectionPoints.slice().reverse();
+    
+   console.log(`Inflection points loaded: ${options}`);
 }
 
 function displayMediaButtons(){
@@ -419,41 +396,28 @@ function displayMediaButtons(){
 }
 
 
-function animateModel(){
-
-
-}
-function drawModel(){
-
+function specifyInflectionPoint(){
 
     $("ellipse, rect").on('click', e =>{
         let id = e.target.parentElement.id;
         // console.log(e.target.parentElement.parentElement.id);
-        if(id.includes("phase"))
-            return;
+
+        if(id.includes("phase"))    return;
 
         e.target.attributes.stroke.value = (e.target.attributes.stroke.value != '#bfff00' ) ? '#bfff00' : '#000';
         e.target.attributes["stroke-width"] = (e.target.attributes["stroke-width"] != '3' ) ? '3' : '1';
-        // $(e.target.parentElement).siblings();
-        // for(let i=0; i < $(e.target.parentElement).siblings().length; i++){
-        // console.log(e.target.attributes["stroke-width"] );
-            
-        //     // console.log($(e.target.parentElement).siblings());
-        //     let type = $(e.target.parentElement).siblings()[i].id;
-        //     if(type.includes('state')){
-        //         $(e.target.parentElement).siblings()[i].children[0].fill = '#fff';
-
-        //     }
-        // }
+       
         
-        // $(e.target.parentElement).siblings().children()[0].attr('fill', '#fff');
+        let token = id.split("_");
+        let state = token[1]
+        if(token[2] != 'g') state = `${state}${token[2]}`
 
-        // console.log($(e.target.parentElement).siblings());
-        // keeds.forEach( e =>{
-            // console.log($("#state_hold_space_g").children(0).attr('stroke', `${perspective.portColor}`));
-            // $("#state_hold_space_g").children(0).attr('stroke', `${perspective.portColor}`);
-        // });
-        // console.log($(e.target.parentElement).siblings("ellipse"));
+        if(!desiredInflectionPoints.includes(state))
+            desiredInflectionPoints.push(state);
+        else
+            desiredInflectionPoints.pop(state);
+
+        generateInflectionPoints(desiredInflectionPoints);
     });
 
 }
@@ -465,16 +429,13 @@ function drawGameScreen(){
         stage.draw();
     }
     
+    drawHUD();
     drawInflectionPoints();
     drawPlaybackPosition();
 
-    if(zonesVisible > 0)
-        drawZones();
-    
-    // draw grids
-    if(debugView)
-        drawDebugView();
-    // drawMeleeGrid();
+    if(zonesVisible > 0)    drawZones();
+    if(debugView)           drawDebugView();
+    // if(debugView)   drawMeleeGrid();
 
     
     // draw players
@@ -493,10 +454,32 @@ function drawProjectiles(){
         // console.log(item.owner, item.state, item.typeId, currentFrame);
         drawCircle(meleeToCanvasX(item.positionX), meleeToCanvasY(item.positionY), 3, playerList[item.owner].portColor, '#fff');
     });
+}
 
 
+function drawHUD(){
+    let p1Percent = Math.round(GAME_FRAMES[currentFrame].players[0].pre.percent);
+    let p2Percent = Math.round(GAME_FRAMES[currentFrame].players[1].pre.percent);
 
 
+    ctx.font = "45px Arial";
+    
+    ctx.strokeStyle = playerList[0].portColor;
+    ctx.strokeText(`${p1Percent}%`, CANVAS_WIDTH * .31, CANVAS_HEIGHT * .92);
+    
+    ctx.strokeStyle = playerList[1].portColor;
+    ctx.strokeText(`${p2Percent}%`, CANVAS_WIDTH * .64, CANVAS_HEIGHT * .92);
+    
+    
+    
+    
+    
+    ctx.fillStyle = "#fff";
+    ctx.font = "20px Arial";
+    ctx.fillText(`${playerList[0].actionStateName}`, (CANVAS_WIDTH * .31) - ctx.measureText(playerList[0].actionStateName).width * .35, CANVAS_HEIGHT * .84);
+    ctx.fillText(`${playerList[1].actionStateName}`, (CANVAS_WIDTH * .64) - ctx.measureText(playerList[1].actionStateName).width * .35, CANVAS_HEIGHT * .84);
+    // ctx.stroke();
+    // ctx.closePath();
 }
 
 function drawZones(){
@@ -519,6 +502,7 @@ function drawZones(){
         intersect.forEach(zone => { zone.draw('#fff'); });
     }
 }
+
 
 function zonesOccupied(){
     playerList.forEach((player, x) =>{
@@ -731,7 +715,10 @@ function mediaButtonPressed(action){
             str = 'going back to';
             break;
         case 'inflectionAdvance':
-            try{ targetFrame = perspective.inflectionPoints.find( ip => { return ip.frame > currentFrame}).frame; }
+            // try{ targetFrame = perspective.inflectionPoints.find( ip => { return ip.frame > currentFrame}).frame; }
+            try{ targetFrame = perspective.inflectionPoints.find( ip => { return ip > currentFrame});
+            console.log(targetFrame);
+        }
             catch(e){targetFrame = lastFrame}
             currentFrame = (targetFrame) ? targetFrame : currentFrame;
             isPaused = true;
@@ -739,7 +726,8 @@ function mediaButtonPressed(action){
             str = 'advancing to';
             break;
         case 'inflectionPrevious':
-            try{ targetFrame = perspective.inflectionPointsReversed.find( ip => { return ip.frame < currentFrame}).frame; }
+            // try{ targetFrame = perspective.inflectionPointsReversed.find( ip => { return ip.frame < currentFrame}).frame; }
+            try{ targetFrame = perspective.inflectionPointsReversed.find( ip => { return ip < currentFrame}); }
             catch(e){targetFrame = 0}
             currentFrame = (targetFrame) ? targetFrame : currentFrame;
             isPaused = true;
@@ -791,38 +779,31 @@ function drawCircle(x, y, r, fillColor, strokeColor){
 }
 
 function drawInflectionPoints(){
-    let inflectionColor = 'red' 
-        perspective.inflectionPoints.forEach( ip =>{
-            switch(ip.name){
-            case 'Successful grab':
-                inflectionColor = '#00ff00';
-                break;
-            case 'Got grabbed':
-                inflectionColor = '#ff0000';
-                break;
-            case 'roll forward':
-            case 'roll backward':
-                inflectionColor = '#fff000';
-                break;
-            default:
-                inflectionColor = '#0000ff';
-                break;
-        }
+    let inflectionColor = '#0000ff';
+    perspective.inflectionPoints.forEach( ip =>{
+        let asID = GAME_FRAMES[ip].players[perspective.index].pre.actionStateId;
+        let asName = GAME_DATA.actioneStates[asID].description;
+        // console.log(GAME_DATA.actioneStates[ip]);
 
-        drawCircle(CANVAS_WIDTH * ip.frame/lastFrame, CANVAS_HEIGHT, 5, inflectionColor, '#fff');
+        if(asName.includes('grab'))  inflectionColor = '#00ff00';
+        if(asName.includes('roll'))  inflectionColor = '#fff000';
+        if(asName.includes('grabbed'))  inflectionColor = '#ff0000';
+        if(asName.includes('Missed tech'))  inflectionColor = '#ff0000';
+
+        drawCircle(CANVAS_WIDTH * ip/lastFrame, CANVAS_HEIGHT, 5, inflectionColor, '#fff');
     });
 }
 
 function drawPlaybackPosition(){
     // draw playback frame text
 
-    drawCircle(CANVAS_WIDTH * currentFrame/lastFrame, CANVAS_HEIGHT, 5, '#ff0000', '#fff');
+    drawCircle(CANVAS_WIDTH * currentFrame/lastFrame, CANVAS_HEIGHT, 5, 'rgba(0,0,0,0)', '#fff');
     ctx.font = '20px Arial';
     let screen_offset = currentFrame < lastFrame/25 ? 40 : 0;
     let text = `${currentFrame}/${lastFrame}`;
 
     // change text for inflection point
-    let currentIP = perspective.inflectionPoints.filter( ip => { if (ip.frame == currentFrame) return ip.name; });
+    let currentIP = perspective.inflectionPoints.filter( ip => { if (ip == currentFrame) return ip.name; });
     if(currentIP[0])
         text = `${currentIP[0].name}`;
     else
@@ -837,11 +818,6 @@ function drawPlaybackPosition(){
     ctx.fillStyle = '#fff';
     ctx.fillText(text, textX, textY);
     ctx.closePath();
-
-
-
-
-
 }
 
 function drawDebugView(){

@@ -29,6 +29,18 @@ svg div {
     user-select: none;
 }
 
+.h-flip{
+  transform: scaleX(-1);
+}
+
+.overlay{
+    background: rgba(39,62,84,0.82);
+    overflow: hidden;
+    height: 100%;
+    z-index: 2;
+
+}
+
 svg text {
     -webkit-user-select: none;
        -moz-user-select: none;

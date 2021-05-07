@@ -22,8 +22,8 @@ class Zone{
         ctx.rect(meleeToCanvasX(this.left), meleeToCanvasY(this.top - 6), this.width, this.height);
         ctx.lineWidth = 2;
         ctx.strokeStyle = color;
-        ctx.fillStyle = 'rgba(0, 255, 0, .25)';
-        ctx.fill();
+        // ctx.fillStyle = 'rgba(0, 255, 0, .2)';
+        // ctx.fill();
         ctx.stroke();
         ctx.closePath();
     }

@@ -58,10 +58,10 @@ class Player{
 
         //display action state text
         ctx.font = '20px Arial';
-        ctx.fillText(this.actionStateName, this.positionX - ctx.measureText(this.actionStateName).width/2, this.positionY - 70);
+        // ctx.fillText(this.actionStateName, this.positionX - ctx.measureText(this.actionStateName).width/2, this.positionY - 70);
         // ctx.fillText(canvasToMeleeY(this.positionY).toFixed(2), this.positionX - ctx.measureText(this.actionStateName).width/2, this.positionY - 70);
-        ctx.fillText(this.phase, this.positionX - ctx.measureText(this.phase).width/2, this.positionY - 100);
-        ctx.fillText(this.state, this.positionX - ctx.measureText(this.state).width/2, this.positionY - 130);
+        // ctx.fillText(this.phase, this.positionX - ctx.measureText(this.phase).width/2, this.positionY - 100);
+        // ctx.fillText(this.state, this.positionX - ctx.measureText(this.state).width/2, this.positionY - 130);
         ctx.stroke();
         ctx.closePath();
 
@@ -127,6 +127,7 @@ class Player{
                 break;
         }
 
+        // this.charImg.classList.add("overlay");
         ctx.drawImage(this.charImg, this.positionX - imgOffsetX, this.positionY - imgOffsetY  , this.bodySize, this.bodySize);
         
         if(this.charName != 'Falco'){

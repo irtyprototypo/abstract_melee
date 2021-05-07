@@ -1,2 +1,2 @@
 # abstract_melee
-The current build is not even a .slp video player.
+replays an .slp file and generates choices based on specified inflection points, but looks like ass. filled with stubs and unplayable.
