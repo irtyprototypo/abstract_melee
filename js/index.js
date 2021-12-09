@@ -51,10 +51,10 @@ function init(){
     GAME_STATS = slp_replay.data.stats;
     GAME_DATA = game_data.data;
 
-    console.log(GAME_FRAMES[215]);
+    // console.log(GAME_FRAMES[215]);
     // console.log(GAME_METADATA);
     // console.log(GAME_SETTINGS);
-    // console.log(GAME_STATS);
+    console.log(GAME_STATS);
     // console.log(GAME_DATA);
 
     ctx = createCanvas();
@@ -70,7 +70,7 @@ function init(){
     lastFrame = GAME_METADATA.lastFrame;
 
     createZones(stage.name);
-    // generateInflectionPoints('grabs rolls');
+    generateInflectionPoints('grabs rolls');
     // specifyInflectionPoint();
 
 
@@ -91,8 +91,9 @@ function mainLoop(){
 
     zonesOccupied();
     if(perspective.inflectionPoints.includes(currentFrame)){
-        document.getElementById('play-toggle-btn').innerHTML = '▶️';
+        document.getElementById('play-toggle-btn').innerHTML = '▶';
         isPaused = true;
+        console.log('Game is paused for inflection point');
     }
     
 
@@ -478,6 +479,12 @@ function updatePlayerPositions(){
             player.actionStateId = GAME_FRAMES[currentFrame].players[i].pre.actionStateId;
             player.actionStateName = (GAME_DATA.actioneStates[player.actionStateId].description) ? GAME_DATA.actioneStates[player.actionStateId].description : GAME_DATA.actioneStates[player.actionStateId].name;
 
+            if (player.actionStateId > 0 && player.actionStateId < 11 && player.dying != true){
+                player.dying = true;
+                player.stocks--;
+                setTimeout(_=>{player.dying = false}, 5000);
+            }
+
 
             player.inputX = GAME_FRAMES[currentFrame].players[i].pre.joystickX;
             player.inputY = GAME_FRAMES[currentFrame].players[i].pre.joystickY;
@@ -564,20 +571,20 @@ function mediaButtonPressed(action){
                 str = 'is unpaused on';
             } else if(!isPaused){         // pause: pressed play while game is running
                 isPaused = true;
-                playBtn.innerHTML = '▶️';
+                playBtn.innerHTML = '▶';
                 str = 'is paused on';
             } 
             break;
         case 'nextFrame':
             currentFrame++;
             isPaused = true;
-            playBtn.innerHTML = '▶️'
+            playBtn.innerHTML = '▶'
             str = 'advancing to';
             break;
         case 'previousFrame':
             currentFrame--;
             isPaused = true;
-            playBtn.innerHTML = '▶️'
+            playBtn.innerHTML = '▶'
             str = 'going back to';
             break;
         case 'inflectionAdvance':
@@ -588,7 +595,7 @@ function mediaButtonPressed(action){
             catch(e){targetFrame = lastFrame}
             currentFrame = (targetFrame) ? targetFrame : currentFrame;
             isPaused = true;
-            playBtn.innerHTML = '▶️'
+            playBtn.innerHTML = '▶'
             str = 'advancing to';
             break;
         case 'inflectionPrevious':
@@ -597,7 +604,7 @@ function mediaButtonPressed(action){
             catch(e){targetFrame = 0}
             currentFrame = (targetFrame) ? targetFrame : currentFrame;
             isPaused = true;
-            playBtn.innerHTML = '▶️'
+            playBtn.innerHTML = '▶'
             str = 'going back to';
             break;
         default:
@@ -777,16 +784,25 @@ function drawProjectiles(){
 function drawHUD(){
     let p1Percent = Math.round(GAME_FRAMES[currentFrame].players[0].pre.percent);
     let p2Percent = Math.round(GAME_FRAMES[currentFrame].players[1].pre.percent);
-    let p1stocks = [];
+    let p1StockIcon = new Image();
+    let p2StockIcon = new Image();
+    p1StockIcon.src = `img/heads_1/${playerList[0].charName}_${playerList[0].charColor}.png`;
+    p2StockIcon.src = `img/heads_1/${playerList[1].charName}_${playerList[1].charColor}.png`;
 
-
-    ctx.font = "45px Arial";
     
+    for(i=0; i < playerList[0].stocks; i++)
+        ctx.drawImage(p1StockIcon, 260+(30*i), CANVAS_HEIGHT - 40);
+  
+    for(i=0; i < playerList[1].stocks; i++)
+        ctx.drawImage(p2StockIcon, 585+(30*i), CANVAS_HEIGHT - 40);
+    
+
+    ctx.font = "35px Arial";
     ctx.strokeStyle = playerList[0].portColor;
-    ctx.strokeText(`${p1Percent}%`, CANVAS_WIDTH * .31, CANVAS_HEIGHT * .92);
+    ctx.strokeText(`${p1Percent}%`, CANVAS_WIDTH * .31, CANVAS_HEIGHT * .91);
     
     ctx.strokeStyle = playerList[1].portColor;
-    ctx.strokeText(`${p2Percent}%`, CANVAS_WIDTH * .64, CANVAS_HEIGHT * .92);
+    ctx.strokeText(`${p2Percent}%`, CANVAS_WIDTH * .64, CANVAS_HEIGHT * .91);
     
     
     ctx.fillStyle = "#fff";
@@ -884,7 +900,7 @@ function gameOverCheck(){
             isPaused = true;
             gameOver = true;
             
-            document.getElementById('play-toggle-btn').innerHTML = '▶️';
+            document.getElementById('play-toggle-btn').innerHTML = '▶';
             console.log('Game Over.');
         }
     }

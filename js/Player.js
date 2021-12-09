@@ -29,6 +29,8 @@ class Player{
         this.distanceFromCenter = 40;
         this.phase = 'True Neutral';
         this.state = 'Approach';
+        this.stocks = 4;
+        this.dying = false;
         
     }
 
@@ -203,6 +205,5 @@ class Player{
     }
 
     setPortColor(port){ this.portColor = this.colorFromPort(port); }
-
 
 }
