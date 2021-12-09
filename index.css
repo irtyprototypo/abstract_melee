@@ -21,9 +21,12 @@ body{
     /* border: 2px red solid; */
     max-width: 100%;
 }
-#img1{
 
+.svg-container{
+    margin: 10px;
+    margin-left: 0px;
 }
+
 
 svg div {
     user-select: none;
