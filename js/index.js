@@ -871,24 +871,44 @@ function drawModel(){
     
     const elems = {
         // svgType, left, top, width, height, fill, opacity, stroke, stroke-dasharray
-        Box_AN: ["rect", 0, 120, 290, 158, "#82B366", ".5", "#82B366", "3, 3"],
-        Box_DN: ["rect", 290, 120, 290, 158, "#B85450", ".5", "#82B366", "3, 3"],
-        Box_Opening: ["rect", 0, 350, 290, 320, "#6C8EBF", ".5", "#6C8EBF", "3, 3"],
-        Box_Knockedback: ["rect", 290, 350, 290, 320, "#D79B00", ".5", "#D79B00", "3, 3"],
-        Box_Kill: ["rect", 0, 670, 290, 150, "#6F78FC", ".5", "#6F78FC", "3, 3"],
-        Box_Death: ["rect", 290, 670, 290, 150, "#FFC27D", ".5", "#FFC27D", "3, 3"],
+        State_TrueNeutral: ["ellipse", 293, 40, 60, 40, "#FFF", "1", "#000",  "0"],
 
+        Box_AN: ["rect", 0, 120, 290, 158, "#d5e8d4", ".5", "#82B366", "3, 3"],
+        Box_DN: ["rect", 290, 120, 290, 158, "#f8cecc", ".5", "#82B366", "3, 3"],
         Phase_AN: ["rect", 8, 132, 103, 52, "#FFF", "1", "#000",  "3, 3"],
         Phase_DN: ["rect", 460, 132, 103, 52, "#FFF", "1", "#000",  "3, 3"],
-        Phase_OpeningPhase: ["rect", 30, 380, 86, 43, "#FFF", "1", "#000", "3, 3"],
-        Phase_Knockedback: ["rect", 460, 370, 86, 43, "#FFF",  "1", "#000","3, 3"],
+            State_Approach: ["ellipse", 137, 315, 37, 25, "#FFF", "1", "#000",  "0"],
+            State_HoldSpace: ["ellipse", 237, 315, 37, 25, "#FFF", "1", "#000",  "0"],
+            State_CoverSpace: ["ellipse", 337, 315, 37, 25, "#FFF", "1", "#000",  "0"],
+            State_Reposition: ["ellipse", 437, 315, 37, 25, "#FFF", "1", "#000",  "0"],
+
+        Box_Opening: ["rect", 0, 350, 290, 320, "#dae8fc", ".5", "#6C8EBF", "3, 3"],
+        Phase_Opening: ["rect", 30, 380, 86, 43, "#FFF", "1", "#000", "3, 3"],
+            State_Stagger: ["ellipse", 97, 505, 37, 25, "#FFF", "1", "#000",  "0"],
+            State_Combo: ["ellipse", 196, 505, 37, 25, "#FFF", "1", "#000",  "0"],
+            State_TechChase: ["ellipse", 45, 608, 37, 25, "#FFF", "1", "#000",  "0"],
+            State_Shark: ["ellipse", 145, 608, 37, 25, "#FFF", "1", "#000",  "0"],
+            State_EdgeGuard: ["ellipse", 240, 608, 37, 25, "#FFF", "1", "#000",  "0"],
+        
+        Box_Kill: ["rect", 0, 670, 290, 150, "#6F78FC", ".5", "#6F78FC", "3, 3"],
         Phase_Kill: ["rect", 212, 690, 56, 25, "#FFF", "1", "#000",  "3, 3"],
-        Phase_Death: ["rect", 507, 690, 56, 25, "#FFF", "1", "#000",  "3, 3"]
+            State_Cheese: ["ellipse", 45, 775, 37, 25, "#FFF", "1", "#000",  "0"],
+            State_Outplay: ["ellipse", 145, 775, 37, 25, "#FFF", "1", "#000",  "0"],
+            State_Bully: ["ellipse", 240, 775, 37, 25, "#FFF", "1", "#000",  "0"],
+
+        Box_Knockedback: ["rect", 290, 350, 290, 320, "#ffe6cc", ".5", "#D79B00", "3, 3"],
+        Phase_Knockedback: ["rect", 460, 370, 86, 43, "#FFF",  "1", "#000","3, 3"],
+            State_SDI: ["ellipse", 503, 445, 22, 15, "#FFF", "1", "#000",  "0"],
+            State_DI: ["ellipse", 407, 495, 37, 25, "#FFF", "1", "#000",  "0"],
+            State_KnockDown: ["ellipse", 474, 560, 37, 25, "#FFF", "1", "#000",  "0"],
+            State_Recovery: ["ellipse", 407, 630, 37, 25, "#FFF", "1", "#000",  "0"],
+
+        Phase_Death: ["rect", 507, 690, 56, 25, "#FFF", "1", "#000",  "3, 3"],
+        Box_Death: ["rect", 290, 670, 290, 150, "#FFC27D", ".5", "#FFC27D", "3, 3"],
+            State_KnockOut: ["ellipse", 337, 775, 37, 25, "#FFF", "1", "#000",  "0"],
+            State_SelfDestruct: ["ellipse", 503, 775, 37, 25, "#FFF", "1", "#000",  "0"]
     };
     
-
-
-
 
     for(let name in elems){
         let elem = document.createElementNS(svgns, `${elems[name][0]}`);
@@ -899,33 +919,31 @@ function drawModel(){
             elem.setAttribute("y", `${elems[name][2]}`);
             elem.setAttribute("width", `${elems[name][3]}`);
             elem.setAttribute("height", `${elems[name][4]}`);
-            elem.setAttribute("fill", `${elems[name][5]}`);
-            elem.setAttribute("opacity", `${elems[name][6]}`);
-            elem.setAttribute("stroke", `${elems[name][7]}`);       // uses same color as fill
-            elem.setAttribute("stroke-dasharray", `${elems[name][8]}`);
         } else{
-
+            elem.setAttribute("cx", `${elems[name][1]}`);
+            elem.setAttribute("cy", `${elems[name][2]}`);
+            elem.setAttribute("rx", `${elems[name][3]}`);
+            elem.setAttribute("ry", `${elems[name][4]}`);
         }
+        
+        elem.setAttribute("fill", `${elems[name][5]}`);
+        elem.setAttribute("opacity", `${elems[name][6]}`);
+        elem.setAttribute("stroke", `${elems[name][7]}`);       // uses same color as fill
+        elem.setAttribute("stroke-dasharray", `${elems[name][8]}`);
 
         elem.onclick = _=>{
             if (elem.classList.contains('active-ip')){
-                // console.log(`${elem.id} removed from IP list`);
                 elem.classList.remove('active-ip')
-                // elem.setAttribute("fill", `${elems[elem.id][4]}`);
                 elem.setAttribute("stroke", `${elems[name][7]}`);
                 elem.setAttribute("stroke-width", "1");
                 elem.setAttribute("stroke-dasharray", `${elems[name][8]}`);
-
                 desiredInflectionPoints.pop(elem.id);
                 
             } else{
-                // console.log(`${elem.id} added to IP list`);
                 elem.classList.add('active-ip');
-                // elem.setAttribute("fill", "#FF0000");
                 elem.setAttribute("stroke", "#00FF00");
                 elem.setAttribute("stroke-width", "8");
                 elem.setAttribute("stroke-dasharray", "0, 0");
-
                 desiredInflectionPoints.push(elem.id);
             }
             generateInflectionPoints(desiredInflectionPoints);
