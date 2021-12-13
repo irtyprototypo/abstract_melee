@@ -58,7 +58,6 @@ function init(){
     // console.log(GAME_DATA);
 
     ctx = createCanvas();
-    drawModel();
 
     setPlayers();
     setPerspective(0);
@@ -66,6 +65,7 @@ function init(){
 
     setStage();
     stage.draw();
+    drawModel();
 
     lastFrame = GAME_METADATA.lastFrame;
 
@@ -93,7 +93,7 @@ function mainLoop(){
     if(perspective.inflectionPoints.includes(currentFrame)){
         document.getElementById('play-toggle-btn').innerHTML = '▶';
         isPaused = true;
-        console.log('Game is paused for inflection point');
+        console.log('Game is paused at an inflection point');
     }
     
 
@@ -269,7 +269,7 @@ function generateInflectionPoints(options){
     if(options.includes('grab'))        lookingFor = lookingFor.concat(grabs);
     if(options.includes('shield'))      lookingFor = lookingFor.concat(shield);
     if(options.includes('roll'))        lookingFor = lookingFor.concat(rolls);
-    if(options.length == 0) lookingFor = [];
+    if(!options.length) lookingFor = [];
 
     for(let i=0; i < lastFrame; i++){
         let prevAStateId = GAME_FRAMES[i-1].players[perspective.index].pre.actionStateId;
@@ -280,11 +280,10 @@ function generateInflectionPoints(options){
             perspective.inflectionPoints.push(i)
         
     }
-    if(lookingFor.length == 0)  perspective.inflectionPoints = [];
-    
+    if(!lookingFor.length)  perspective.inflectionPoints = [];
     perspective.inflectionPointsReversed = perspective.inflectionPoints.slice().reverse();
     
-   console.log(`Inflection points loaded: ${options}`);
+//    console.log(`Inflection points loaded: ${options}`);
 }
 
 function zonesOccupied(){
@@ -479,11 +478,13 @@ function updatePlayerPositions(){
             player.actionStateId = GAME_FRAMES[currentFrame].players[i].pre.actionStateId;
             player.actionStateName = (GAME_DATA.actioneStates[player.actionStateId].description) ? GAME_DATA.actioneStates[player.actionStateId].description : GAME_DATA.actioneStates[player.actionStateId].name;
 
-            if (player.actionStateId > 0 && player.actionStateId < 11 && player.dying != true){
+            if (player.dying != true && player.actionStateId >= 0 && player.actionStateId <= 10){
                 player.dying = true;
                 player.stocks--;
-                setTimeout(_=>{player.dying = false}, 5000);
             }
+            
+            if (player.actionStateId == 12)
+                player.dying = false;
 
 
             player.inputX = GAME_FRAMES[currentFrame].players[i].pre.joystickX;
@@ -865,18 +866,73 @@ function drawMeleeGrid(){
 function drawModel(){
     const svg = document.querySelector("svg");
     const svgns = "http://www.w3.org/2000/svg";
-    let nBox = document.createElementNS(svgns, "rect");
+    const vbWidth = document.querySelector(".svg-container").viewBox.baseVal.width;
+    const vbHeight = document.querySelector(".svg-container").viewBox.baseVal.height;
     
-    nBox.setAttribute("x", "10");
-    nBox.setAttribute("y", "10");
-    nBox.setAttribute("width", "20");
-    nBox.setAttribute("height", "20");
-    nBox.setAttribute("fill", "#5cceee");
+    const elems = {
+        // svgType, left, top, width, height, fill, opacity, stroke, stroke-dasharray
+        Box_AN: ["rect", 0, 120, 290, 158, "#82B366", ".5", "#82B366", "3, 3"],
+        Box_DN: ["rect", 290, 120, 290, 158, "#B85450", ".5", "#82B366", "3, 3"],
+        Box_Opening: ["rect", 0, 350, 290, 320, "#6C8EBF", ".5", "#6C8EBF", "3, 3"],
+        Box_Knockedback: ["rect", 290, 350, 290, 320, "#D79B00", ".5", "#D79B00", "3, 3"],
+        Box_Kill: ["rect", 0, 670, 290, 150, "#6F78FC", ".5", "#6F78FC", "3, 3"],
+        Box_Death: ["rect", 290, 670, 290, 150, "#FFC27D", ".5", "#FFC27D", "3, 3"],
 
-    svg.appendChild(nBox);
-    // console.log(svg);
+        Phase_AN: ["rect", 8, 132, 103, 52, "#FFF", "1", "#000",  "3, 3"],
+        Phase_DN: ["rect", 460, 132, 103, 52, "#FFF", "1", "#000",  "3, 3"],
+        Phase_OpeningPhase: ["rect", 30, 380, 86, 43, "#FFF", "1", "#000", "3, 3"],
+        Phase_Knockedback: ["rect", 460, 370, 86, 43, "#FFF",  "1", "#000","3, 3"],
+        Phase_Kill: ["rect", 212, 690, 56, 25, "#FFF", "1", "#000",  "3, 3"],
+        Phase_Death: ["rect", 507, 690, 56, 25, "#FFF", "1", "#000",  "3, 3"]
+    };
+    
+
+
+
+
+    for(let name in elems){
+        let elem = document.createElementNS(svgns, `${elems[name][0]}`);
+        elem.id = `${name}`;
+        elem.innerHTML = name;
+        if(`${elems[name][0]}` == "rect"){
+            elem.setAttribute("x", `${elems[name][1]}`);
+            elem.setAttribute("y", `${elems[name][2]}`);
+            elem.setAttribute("width", `${elems[name][3]}`);
+            elem.setAttribute("height", `${elems[name][4]}`);
+            elem.setAttribute("fill", `${elems[name][5]}`);
+            elem.setAttribute("opacity", `${elems[name][6]}`);
+            elem.setAttribute("stroke", `${elems[name][7]}`);       // uses same color as fill
+            elem.setAttribute("stroke-dasharray", `${elems[name][8]}`);
+        } else{
+
+        }
+
+        elem.onclick = _=>{
+            if (elem.classList.contains('active-ip')){
+                // console.log(`${elem.id} removed from IP list`);
+                elem.classList.remove('active-ip')
+                // elem.setAttribute("fill", `${elems[elem.id][4]}`);
+                elem.setAttribute("stroke", `${elems[name][7]}`);
+                elem.setAttribute("stroke-width", "1");
+                elem.setAttribute("stroke-dasharray", `${elems[name][8]}`);
+
+                desiredInflectionPoints.pop(elem.id);
+                
+            } else{
+                // console.log(`${elem.id} added to IP list`);
+                elem.classList.add('active-ip');
+                // elem.setAttribute("fill", "#FF0000");
+                elem.setAttribute("stroke", "#00FF00");
+                elem.setAttribute("stroke-width", "8");
+                elem.setAttribute("stroke-dasharray", "0, 0");
+
+                desiredInflectionPoints.push(elem.id);
+            }
+            generateInflectionPoints(desiredInflectionPoints);
+        };
+        svg.appendChild(elem);
+    }
 }
-
 
 
 
@@ -950,3 +1006,10 @@ function meleeToCanvasX(meleeX){ return (CANVAS_WIDTH / 2 + stage.x_offset) + (m
 function meleeToCanvasY(meleeY){ return ((CANVAS_HEIGHT * stage.floor_offset) + (-meleeY * 73/60 * stage.y_scaler)); }
 function canvasToMeleeX(canvasX){ return ((CANVAS_WIDTH/2) - canvasX + stage.x_offset) * -60/73 / stage.x_scaler; }
 function canvasToMeleeY(canvasY){ return ((CANVAS_HEIGHT * stage.floor_offset - canvasY) * (60/73 / stage.y_scaler)); }
+
+
+
+function getCoords(e){
+    console.log(e.offsetX, e.offsetY);
+
+}

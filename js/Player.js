@@ -46,7 +46,8 @@ class Player{
 
         // draw rubber band
         if(this.rubberBandVisible)
-            this.drawRubberBand();
+            if (this.dying == false)
+                this.drawRubberBand();
 
         
         // draw Left and c stick

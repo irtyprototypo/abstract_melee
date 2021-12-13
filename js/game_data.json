@@ -91,7 +91,7 @@ const game_data = {
             { "id": 25, "name": "Ganondorf", "shortName": "Ganon", "colors": [ "Default", "Red", "Blue", "Green", "Purple" ] }
         ],
         "actioneStates": [
-            { "id": 0, "name": "zero", "description": "move along, nothing to see here." },
+            { "id": 0, "name": "zero", "description": "" },
             { "id": 1, "name": "DeadLeft", "description": "Standard leftward death" },
             { "id": 2, "name": "DeadRight", "description": "Standard rightward death" },
             { "id": 3, "name": "DeadUp", "description": "Upward death used in 1P \"Team Kirby\"" },
